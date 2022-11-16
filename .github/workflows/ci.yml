@@ -127,8 +127,8 @@ jobs:
         env:
           KUBECTL_VERSION: 1.23.6
       - name: Run tests
-        run:
-          KUBECONFIG=$(echo "${BASE64_KUBECONFIG_DBAAS}"|base64 --decode)
+        run: |
+          KUBECONFIG=echo "$BASE64_KUBECONFIG_DBAAS"|base64 --decode
           export "$KUBECONFIG"
           kubectl kuttl test --config ./e2e-tests/kuttl-eks.yml
         env:
