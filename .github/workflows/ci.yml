@@ -129,6 +129,7 @@ jobs:
       - name: Run tests
         run: |
           export KUBECONFIG="${HOME}/.kube/config"
+          mkdir -p "${KUBECONFIG%/*}"
           echo "$BASE64_KUBECONFIG_DBAAS"|base64 -d > "${KUBECONFIG}"
           kubectl kuttl test --config ./e2e-tests/kuttl-eks.yml
         env:
