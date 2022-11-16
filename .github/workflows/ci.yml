@@ -133,3 +133,4 @@ jobs:
           kubectl kuttl test --config ./e2e-tests/kuttl-eks.yml
         env:
           PXC_OPERATOR_VERSION: 1.11.0
+          BASE64_KUBECONFIG_DBAAS: ${{ secrets.BASE64_KUBECONFIG_DBAAS }}
