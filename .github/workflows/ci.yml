@@ -144,3 +144,23 @@ jobs:
         env:
           PXC_OPERATOR_VERSION: 1.11.0
           BASE64_KUBECONFIG_DBAAS: ${{ secrets.BASE64_KUBECONFIG_DBAAS }}
+
+  make-bundle:
+    name: Make Bundle
+    strategy:
+      fail-fast: true
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Set up Go release
+        uses: actions/setup-go@v3
+        with:
+          go-version: '1.18'
+          check-latest: true
+
+      - name: Make bundle and build bundle image
+        run: |
+          make bundle bundle-build

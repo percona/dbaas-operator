@@ -153,7 +153,7 @@ spec:
                 - --leader-elect
                 command:
                 - /manager
-                image: controller:latest
+                image: perconalab/dbaas-operator:0.0.1
                 livenessProbe:
                   httpGet:
                     path: /healthz
