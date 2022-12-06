@@ -2,11 +2,87 @@ apiVersion: kuttl.dev/v1beta1
 kind: TestAssert
 timeout: 30
 ---
-apiVersion: v1
-kind: Secret
+apiVersion: dbaas.percona.com/v1
+kind: DatabaseCluster
 metadata:
-  name: pxc-sample-secrets
-type: Opaque
-data:
-  pmmserver: S1pCaW4yVTA1TXphZGt5ZWs=
-
+  name: single-node
+spec:
+  databaseType: pxc
+  databaseImage: percona/percona-xtradb-cluster:8.0.27-18.1
+  databaseConfig: |
+    [mysqld]
+    wsrep_provider_options="debug=1;gcache.size=1G"
+    wsrep_debug=1
+    wsrep_trx_fragment_unit='bytes'
+    wsrep_trx_fragment_size=3670016
+  secretsName: pxc-sample-secrets
+  clusterSize: 1
+  loadBalancer:
+    type: haproxy
+    exposeType: ClusterIP
+    size: 1
+    image: percona/percona-xtradb-cluster-operator:1.11.0-haproxy
+  monitoring:
+    imagePullPolicy: Always
+    pmm:
+      serverHost: http://127.0.0.1
+      serverUser: admin
+    resources:
+      requests:
+        cpu: 500m
+        memory: 500M
+  dbInstance:
+    cpu: "1"
+    memory: 1G
+    diskSize: 15G
+---
+apiVersion: pxc.percona.com/v1
+kind: PerconaXtraDBCluster
+metadata:
+  name: single-node
+spec:
+  allowUnsafeConfigurations: true
+  crVersion: 1.11.0
+  haproxy:
+    enabled: true
+    image: percona/percona-xtradb-cluster-operator:1.11.0-haproxy
+    serviceType: ClusterIP
+    size: 1
+  pmm:
+    enabled: true
+    resources:
+      requests:
+        cpu: 500m
+        memory: 300M
+  pxc:
+    configuration: |
+      [mysqld]
+      wsrep_provider_options="debug=1;gcache.size=1G"
+      wsrep_debug=1
+      wsrep_trx_fragment_unit='bytes'
+      wsrep_trx_fragment_size=3670016
+    expose: {}
+    image: percona/percona-xtradb-cluster:8.0.27-18.1
+    livenessProbes: {}
+    readinessProbes: {}
+    resources:
+      requests:
+        cpu: "1"
+        memory: 1G
+    serviceType: ClusterIP
+    sidecarResources: {}
+    size: 1
+    volumeSpec:
+      persistentVolumeClaim:
+        resources:
+          requests:
+            storage: 15G
+  secretsName: pxc-sample-secrets
+  updateStrategy: SmartUpdate
+  upgradeOptions:
+    apply: 8.0-recommended
+    schedule: 0 4 * * *
+status:
+  ready: 0
+  size: 2
+  state: initializing
