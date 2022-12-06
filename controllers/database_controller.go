@@ -347,6 +347,7 @@ func (r *DatabaseReconciler) reconcilePXC(ctx context.Context, req ctrl.Request,
 					},
 				},
 			},
+			PMM: &pxcv1.PMMSpec{Enabled: false},
 		}
 		if database.Spec.LoadBalancer.Type == "haproxy" {
 			if database.Spec.LoadBalancer.Image == "" {
@@ -379,6 +380,18 @@ func (r *DatabaseReconciler) reconcilePXC(ctx context.Context, req ctrl.Request,
 				Enabled:                  true,
 				Image:                    database.Spec.LoadBalancer.Image,
 			}
+		}
+		if database.Spec.Monitoring.PMM != nil {
+			pxc.Spec.PMM.Enabled = true
+			pxc.Spec.PMM.ServerHost = database.Spec.Monitoring.PMM.PublicAddress
+			pxc.Spec.PMM.ServerUser = database.Spec.Monitoring.PMM.Login
+			pxc.Spec.PMM.Resources = corev1.ResourceRequirements{
+				Requests: corev1.ResourceList{
+					corev1.ResourceMemory: resource.MustParse("300M"),
+					corev1.ResourceCPU:    resource.MustParse("500m"),
+				},
+			}
+			pxc.Spec.PMM.Image = database.Spec.Monitoring.PMM.Image
 		}
 		return nil
 	})
