@@ -1,11 +1,3 @@
-apiVersion: v1
-kind: Secret
-metadata:
-  name: pxc-sample-secrets
-type: Opaque
-data:
-  pmmserver: S1pCaW4yVTA1TXphZGt5ZWs=
----
 apiVersion: dbaas.percona.com/v1
 kind: DatabaseCluster
 metadata:
@@ -26,16 +18,6 @@ spec:
     exposeType: ClusterIP
     size: 1
     image: percona/percona-xtradb-cluster-operator:1.11.0-haproxy
-  monitoring:
-    imagePullPolicy: Always
-    pmm:
-      image: percona/pmm-client:2
-      serverHost: http://127.0.0.1
-      serverUser: admin
-    resources:
-      requests:
-        cpu: 500m
-        memory: 500M
   dbInstance:
     cpu: "1"
     memory: 1G
