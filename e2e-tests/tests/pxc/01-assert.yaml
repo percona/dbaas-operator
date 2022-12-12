@@ -1,11 +1,11 @@
 apiVersion: kuttl.dev/v1beta1
 kind: TestAssert
-timeout: 30
+timeout: 120
 ---
 apiVersion: dbaas.percona.com/v1
 kind: DatabaseCluster
 metadata:
-  name: single-node
+  name: test-cluster
 spec:
   databaseType: pxc
   databaseImage: percona/percona-xtradb-cluster:8.0.27-18.1
@@ -25,6 +25,7 @@ spec:
   monitoring:
     imagePullPolicy: Always
     pmm:
+      image: percona/pmm-client:2
       serverHost: http://127.0.0.1
       serverUser: admin
     resources:
@@ -39,7 +40,7 @@ spec:
 apiVersion: pxc.percona.com/v1
 kind: PerconaXtraDBCluster
 metadata:
-  name: single-node
+  name: test-cluster
 spec:
   allowUnsafeConfigurations: true
   crVersion: 1.11.0
@@ -50,6 +51,7 @@ spec:
     size: 1
   pmm:
     enabled: true
+    image: percona/pmm-client:2
     resources:
       requests:
         cpu: 500m
