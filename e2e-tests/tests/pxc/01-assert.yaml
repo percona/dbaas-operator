@@ -85,6 +85,6 @@ spec:
     apply: 8.0-recommended
     schedule: 0 4 * * *
 status:
-  ready: 0
+  ready: 2
   size: 2
   state: ready
