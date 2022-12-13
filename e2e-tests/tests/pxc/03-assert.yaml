@@ -6,13 +6,19 @@ apiVersion: dbaas.percona.com/v1
 kind: DatabaseCluster
 metadata:
   name: test-cluster
+  annotations:
+    dbaas.percona.com/restart: "true"
 spec:
   databaseType: pxc
-  databaseImage: percona/percona-xtradb-cluster:8.0.23-14.1
+  databaseImage: percona/percona-xtradb-cluster:8.0.27-18.1
   databaseConfig: |
     [mysqld]
     wsrep_provider_options="debug=1;gcache.size=1G"
+    wsrep_debug=1
+    wsrep_trx_fragment_unit='bytes'
+    wsrep_trx_fragment_size=3670016
   secretsName: pxc-sample-secrets
+  pause: true
   clusterSize: 1
   loadBalancer:
     type: haproxy
@@ -40,8 +46,11 @@ spec:
     configuration: |
       [mysqld]
       wsrep_provider_options="debug=1;gcache.size=1G"
+      wsrep_debug=1
+      wsrep_trx_fragment_unit='bytes'
+      wsrep_trx_fragment_size=3670016
     expose: {}
-    image: percona/percona-xtradb-cluster:8.0.23-14.1
+    image: percona/percona-xtradb-cluster:8.0.27-18.1
     livenessProbes: {}
     readinessProbes: {}
     resources:
@@ -62,6 +71,6 @@ spec:
     apply: 8.0-recommended
     schedule: 0 4 * * *
 status:
-  ready: 2
-  size: 2
-  state: ready
+  ready: 0
+  size: 0
+  state: paused
