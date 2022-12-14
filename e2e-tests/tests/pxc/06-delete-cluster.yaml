@@ -1,0 +1,6 @@
+apiVersion: kuttl.dev/v1beta1
+kind: TestStep
+delete:
+- apiVersion: dbaas.percona.com/v1
+  kind: DatabaseCluster
+  name: test-cluster

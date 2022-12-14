@@ -1,6 +1,6 @@
 apiVersion: kuttl.dev/v1beta1
 kind: TestAssert
-timeout: 600
+timeout: 900
 ---
 apiVersion: dbaas.percona.com/v1
 kind: DatabaseCluster
@@ -32,7 +32,6 @@ kind: PerconaXtraDBCluster
 metadata:
   name: test-cluster
 spec:
-  allowUnsafeConfigurations: true
   crVersion: 1.11.0
   haproxy:
     enabled: true
