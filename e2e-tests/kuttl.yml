@@ -6,7 +6,3 @@ crdDir: config/crd/bases
 artifactsDir: /tmp/
 testDirs:
 - e2e-tests/tests
-commands:
-  - command: kubectl apply -f https://raw.githubusercontent.com/percona/percona-xtradb-cluster-operator/v${PXC_OPERATOR_VERSION}/deploy/bundle.yaml -n "${NAMESPACE}"
-  - command: ./bin/manager
-    background: true
