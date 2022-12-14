@@ -1,3 +1,7 @@
+apiVersion: kuttl.dev/v1beta1
+kind: TestStep
+timeout: 10
+---
 apiVersion: dbaas.percona.com/v1
 kind: DatabaseCluster
 metadata:
