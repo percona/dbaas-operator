@@ -95,6 +95,7 @@ func (r *DatabaseReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		if err := r.Update(ctx, database); err != nil {
 			return reconcile.Result{RequeueAfter: 5 * time.Second}, err
 		}
+		return reconcile.Result{RequeueAfter: 5 * time.Second}, nil
 	}
 	if ok && database.Status.State == dbaasv1.AppStatePaused {
 		database.Spec.Pause = false
@@ -102,6 +103,7 @@ func (r *DatabaseReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		if err := r.Update(ctx, database); err != nil {
 			return reconcile.Result{RequeueAfter: 5 * time.Second}, err
 		}
+		return reconcile.Result{RequeueAfter: 5 * time.Second}, nil
 	}
 	if database.Spec.Database == "pxc" {
 		err := r.reconcilePXC(ctx, req, database)
