@@ -4,6 +4,3 @@ crdDir: config/crd/bases
 artifactsDir: /tmp/
 testDirs:
 - e2e-tests/tests
-commands:
-  - command: ./bin/manager
-    background: true
