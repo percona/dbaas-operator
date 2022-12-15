@@ -2,8 +2,9 @@ apiVersion: kuttl.dev/v1beta1
 kind: TestStep
 timeout: 10
 commands:
-  - command: export WATCH_NAMESPACE=$NAMESPACE
-  - command: ../../../bin/manager
+  - script: |
+    export WATCH_NAMESPACE=$NAMESPACE
+    ../../../bin/manager
     background: true
 ---
 apiVersion: dbaas.percona.com/v1
