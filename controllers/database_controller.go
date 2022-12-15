@@ -22,9 +22,7 @@ import (
 	"time"
 
 	"github.com/AlekSi/pointer"
-	psmdbAPIs "github.com/percona/percona-server-mongodb-operator/pkg/apis"
 	psmdbv1 "github.com/percona/percona-server-mongodb-operator/pkg/apis/psmdb/v1"
-	pxcAPIs "github.com/percona/percona-xtradb-cluster-operator/pkg/apis"
 
 	pxcv1 "github.com/percona/percona-xtradb-cluster-operator/pkg/apis/pxc/v1"
 	appsv1 "k8s.io/api/apps/v1"
@@ -47,14 +45,16 @@ import (
 const (
 	PerconaXtraDBClusterKind = "PerconaXtraDBCluster"
 	PerconaServerMongoDBKind = "PerconaServerMongoDB"
-	pxcDeploymentName        = "percona-xtradb-cluster-operator"
-	psmdbDeploymentName      = "percona-server-mongodb-operator"
-	psmdbCRDName             = "perconaservermongodbs.psmdb.percona.com"
-	pxcCRDName               = "perconaxtradbclusters.pxc.percona.com"
-	pxcAPIGroup              = "pxc.percona.com"
-	psmdbAPIGroup            = "psmdb.percona.com"
-	haProxyTemplate          = "percona/percona-xtradb-cluster-operator:%s-haproxy"
-	restartAnnotationKey     = "dbaas.percona.com/restart"
+
+	pxcDeploymentName   = "percona-xtradb-cluster-operator"
+	psmdbDeploymentName = "percona-server-mongodb-operator"
+
+	psmdbCRDName         = "perconaservermongodbs.psmdb.percona.com"
+	pxcCRDName           = "perconaxtradbclusters.pxc.percona.com"
+	pxcAPIGroup          = "pxc.percona.com"
+	psmdbAPIGroup        = "psmdb.percona.com"
+	haProxyTemplate      = "percona/percona-xtradb-cluster-operator:%s-haproxy"
+	restartAnnotationKey = "dbaas.percona.com/restart"
 )
 
 // DatabaseReconciler reconciles a Database object
@@ -66,6 +66,10 @@ type DatabaseReconciler struct {
 //+kubebuilder:rbac:groups=dbaas.percona.com,resources=databaseclusters,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=dbaas.percona.com,resources=databaseclusters/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=dbaas.percona.com,resources=databaseclusters/finalizers,verbs=update
+//+kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;list;watch
+//+kubebuilder:rbac:groups=apiextensions.k8s.io,resources=customresourcedefinitions,verbs=get;list;watch
+//+kubebuilder:rbac:groups=pxc.percona.com,resources=perconaxtradbclusters,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=pxc.percona.com,resources=perconaservermongodbs,verbs=get;list;watch;create;update;patch;delete
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
@@ -125,7 +129,7 @@ func (r *DatabaseReconciler) reconcilePSMDB(ctx context.Context, req ctrl.Reques
 	}
 	version, err := r.getOperatorVersion(ctx, types.NamespacedName{
 		Namespace: req.NamespacedName.Namespace,
-		Name:      pxcDeploymentName,
+		Name:      psmdbDeploymentName,
 	})
 	if err != nil {
 		return err
@@ -312,6 +316,7 @@ func (r *DatabaseReconciler) reconcilePXC(ctx context.Context, req ctrl.Request,
 		Namespace: req.NamespacedName.Namespace,
 		Name:      pxcDeploymentName,
 	})
+	fmt.Println(version.String())
 	if err != nil {
 		return err
 	}
@@ -434,13 +439,39 @@ func (r *DatabaseReconciler) getOperatorVersion(ctx context.Context, name types.
 	version := strings.Split(deployment.Spec.Template.Spec.Containers[0].Image, ":")[1]
 	return NewVersion(version)
 }
+func (r *DatabaseReconciler) addPXCKnownTypes(scheme *runtime.Scheme) error {
+	pxcSchemeGroupVersion := schema.GroupVersion{Group: "pxc.percona.com", Version: "v1"}
+	scheme.AddKnownTypes(pxcSchemeGroupVersion,
+		&pxcv1.PerconaXtraDBCluster{}, &pxcv1.PerconaXtraDBClusterList{},
+	)
+
+	metav1.AddToGroupVersion(scheme, pxcSchemeGroupVersion)
+	return nil
+}
+func (r *DatabaseReconciler) addPSMDBKnownTypes(scheme *runtime.Scheme) error {
+	pxcSchemeGroupVersion := schema.GroupVersion{Group: "psmdb.percona.com", Version: "v1"}
+	scheme.AddKnownTypes(pxcSchemeGroupVersion,
+		&psmdbv1.PerconaServerMongoDB{}, &psmdbv1.PerconaServerMongoDBList{},
+	)
+
+	metav1.AddToGroupVersion(scheme, pxcSchemeGroupVersion)
+	return nil
+}
+func (r *DatabaseReconciler) addPSMDBToScheme(scheme *runtime.Scheme) error {
+	builder := runtime.NewSchemeBuilder(r.addPSMDBKnownTypes)
+	return builder.AddToScheme(scheme)
+}
+func (r *DatabaseReconciler) addPXCToScheme(scheme *runtime.Scheme) error {
+	builder := runtime.NewSchemeBuilder(r.addPXCKnownTypes)
+	return builder.AddToScheme(scheme)
+}
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *DatabaseReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	if err := pxcAPIs.AddToScheme(r.Scheme); err != nil {
+	if err := r.addPSMDBToScheme(r.Scheme); err != nil {
 		return err
 	}
-	if err := psmdbAPIs.AddToScheme(r.Scheme); err != nil {
+	if err := r.addPXCToScheme(r.Scheme); err != nil {
 		return err
 	}
 	unstructuredResource := &unstructured.Unstructured{}
