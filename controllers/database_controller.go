@@ -494,12 +494,8 @@ func (r *DatabaseReconciler) addPXCToScheme(scheme *runtime.Scheme) error {
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *DatabaseReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	if err := r.addPSMDBToScheme(r.Scheme); err != nil {
-		return err
-	}
-	if err := r.addPXCToScheme(r.Scheme); err != nil {
-		return err
-	}
+	r.addPSMDBToScheme(r.Scheme)
+	r.addPXCToScheme(r.Scheme)
 	unstructuredResource := &unstructured.Unstructured{}
 	unstructuredResource.SetGroupVersionKind(schema.GroupVersionKind{
 		Group:   "apiextensions.k8s.io",
