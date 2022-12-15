@@ -18,6 +18,7 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
@@ -432,15 +433,33 @@ func (r *DatabaseReconciler) reconcilePXC(ctx context.Context, req ctrl.Request,
 	return nil
 }
 func (r *DatabaseReconciler) getOperatorVersion(ctx context.Context, name types.NamespacedName) (*Version, error) {
+	unstructuredResource := &unstructured.Unstructured{}
+	unstructuredResource.SetGroupVersionKind(schema.GroupVersionKind{
+		Group:   "apps",
+		Kind:    "Deployment",
+		Version: "v1",
+	})
 	deployment := &appsv1.Deployment{}
-	if err := r.Get(ctx, name, deployment); err != nil {
+	if err := r.Get(ctx, name, unstructuredResource); err != nil {
+		return nil, err
+	}
+	err := runtime.DefaultUnstructuredConverter.
+		FromUnstructured(unstructuredResource.Object, deployment)
+	if err != nil {
 		return nil, err
 	}
 	version := strings.Split(deployment.Spec.Template.Spec.Containers[0].Image, ":")[1]
 	return NewVersion(version)
 }
 func (r *DatabaseReconciler) addPXCKnownTypes(scheme *runtime.Scheme) error {
-	pxcSchemeGroupVersion := schema.GroupVersion{Group: "pxc.percona.com", Version: "v1"}
+	version, err := r.getOperatorVersion(context.Background(), types.NamespacedName{
+		Name:      pxcDeploymentName,
+		Namespace: os.Getenv("WATCH_NAMESPACE"),
+	})
+	if err != nil {
+		return err
+	}
+	pxcSchemeGroupVersion := schema.GroupVersion{Group: "pxc.percona.com", Version: strings.Replace("v"+version.String(), ".", "-", -1)}
 	scheme.AddKnownTypes(pxcSchemeGroupVersion,
 		&pxcv1.PerconaXtraDBCluster{}, &pxcv1.PerconaXtraDBClusterList{},
 	)
@@ -449,12 +468,19 @@ func (r *DatabaseReconciler) addPXCKnownTypes(scheme *runtime.Scheme) error {
 	return nil
 }
 func (r *DatabaseReconciler) addPSMDBKnownTypes(scheme *runtime.Scheme) error {
-	pxcSchemeGroupVersion := schema.GroupVersion{Group: "psmdb.percona.com", Version: "v1"}
-	scheme.AddKnownTypes(pxcSchemeGroupVersion,
+	version, err := r.getOperatorVersion(context.Background(), types.NamespacedName{
+		Name:      psmdbDeploymentName,
+		Namespace: os.Getenv("WATCH_NAMESPACE"),
+	})
+	if err != nil {
+		return err
+	}
+	psmdbSchemeGroupVersion := schema.GroupVersion{Group: "psmdb.percona.com", Version: strings.Replace("v"+version.String(), ".", "-", -1)}
+	scheme.AddKnownTypes(psmdbSchemeGroupVersion,
 		&psmdbv1.PerconaServerMongoDB{}, &psmdbv1.PerconaServerMongoDBList{},
 	)
 
-	metav1.AddToGroupVersion(scheme, pxcSchemeGroupVersion)
+	metav1.AddToGroupVersion(scheme, psmdbSchemeGroupVersion)
 	return nil
 }
 func (r *DatabaseReconciler) addPSMDBToScheme(scheme *runtime.Scheme) error {
