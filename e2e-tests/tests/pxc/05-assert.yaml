@@ -16,7 +16,7 @@ spec:
     wsrep_trx_fragment_unit='bytes'
     wsrep_trx_fragment_size=3670016
   secretsName: pxc-sample-secrets
-  clusterSize: 5
+  clusterSize: 3
   loadBalancer:
     type: haproxy
     exposeType: ClusterIP
@@ -55,7 +55,7 @@ spec:
         memory: 1G
     serviceType: ClusterIP
     sidecarResources: {}
-    size: 5
+    size: 3
     volumeSpec:
       persistentVolumeClaim:
         resources:

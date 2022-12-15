@@ -1,9 +1,6 @@
 apiVersion: kuttl.dev/v1beta1
 kind: TestStep
 timeout: 10
-commands:
-  - command: ../../../bin/manager
-    background: true
 ---
 apiVersion: dbaas.percona.com/v1
 kind: DatabaseCluster
@@ -19,7 +16,7 @@ spec:
     wsrep_trx_fragment_unit='bytes'
     wsrep_trx_fragment_size=3670016
   secretsName: pxc-sample-secrets
-  clusterSize: 3
+  clusterSize: 5
   loadBalancer:
     type: haproxy
     exposeType: ClusterIP
