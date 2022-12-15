@@ -48,7 +48,7 @@ rules:
   - patch
   - update
 - apiGroups:
-  - pxc.percona.com
+  - psmdb.percona.com
   resources:
   - perconaservermongodbs
   verbs:
