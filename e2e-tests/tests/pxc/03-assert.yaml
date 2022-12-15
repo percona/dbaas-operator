@@ -1,8 +1,6 @@
 apiVersion: kuttl.dev/v1beta1
 kind: TestAssert
 timeout: 600
-commands:
-  - command: kubectl wait db --for jsonpath='{.status.status}'=stopping --namespace $NAMESPACE test-cluster
 ---
 apiVersion: dbaas.percona.com/v1
 kind: DatabaseCluster
