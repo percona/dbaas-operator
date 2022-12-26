@@ -1,0 +1,6 @@
+apiVersion: dbaas.percona.com/v1
+kind: DatabaseClusterBackup
+metadata:
+  name: databaseclusterbackup-sample
+spec:
+  # TODO(user): Add fields here
