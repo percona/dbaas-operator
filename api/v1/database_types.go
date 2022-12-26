@@ -75,7 +75,7 @@ type (
 		LoadBalancer LoadBalancerSpec `json:"loadBalancer,omitempty"`
 		Monitoring   MonitoringSpec   `json:"monitoring,omitempty"`
 		DBInstance   DBInstanceSpec   `json:"dbInstance"`
-		Backup       BackupSpec       `json:"backup,omitempty"`
+		Backup       *BackupSpec      `json:"backup,omitempty"`
 	}
 	// LoadBalancer contains a load balancer settings. For PXC it's haproxy
 	// or proxysql. For PSMDB it's mongos.
@@ -125,9 +125,8 @@ type (
 	}
 
 	BackupSchedule struct {
-		Name    string `json:"name,omitempty"`
-		Enabled bool   `json:"enabled"`
-
+		Name             string              `json:"name,omitempty"`
+		Enabled          bool                `json:"enabled"`
 		Schedule         string              `json:"schedule,omitempty"`
 		Keep             int                 `json:"keep,omitempty"`
 		StorageName      string              `json:"storageName,omitempty"`
