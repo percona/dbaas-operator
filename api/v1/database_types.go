@@ -121,12 +121,23 @@ type (
 		Resources                corev1.ResourceRequirements   `json:"resources,omitempty"`
 		Storages                 map[string]*BackupStorageSpec `json:"storages,omitempty"`
 	}
+	BackupStorageProviderSpec struct {
+		// A container name is a valid DNS name that conforms to the Azure naming rules.
+		ContainerName string `json:"containerName"`
+
+		Bucket            string `json:"bucket"`
+		Prefix            string `json:"prefix,omitempty"`
+		CredentialsSecret string `json:"credentialsSecret"`
+		Region            string `json:"region,omitempty"`
+		EndpointURL       string `json:"endpointUrl,omitempty"`
+
+		// STANDARD, NEARLINE, COLDLINE, ARCHIVE for GCP
+		StorageClass string `json:"storageClass,omitempty"`
+	}
 	BackupStorageSpec struct {
 		Type                     BackupStorageType           `json:"type"`
 		Volume                   *VolumeSpec                 `json:"volumeSpec,omitempty"`
-		S3                       *BackupStorageS3Spec        `json:"s3,omitempty"`
-		GCS                      *BackupStorageGCSSpec       `json:"gcs,omitempty"`
-		Azure                    *BackupStorageAzureSpec     `json:"azure,omitempty"`
+		StorageProvider          *BackupStorageProviderSpec  `json:"storageProvider,omitempty"`
 		NodeSelector             map[string]string           `json:"nodeSelector,omitempty"`
 		Resources                corev1.ResourceRequirements `json:"resources,omitempty"`
 		Affinity                 *corev1.Affinity            `json:"affinity,omitempty"`
@@ -157,41 +168,6 @@ type (
 		// EmptyDir. And represents the PVC specification.
 		// +optional
 		PersistentVolumeClaim *corev1.PersistentVolumeClaimSpec `json:"persistentVolumeClaim,omitempty"`
-	}
-	BackupStorageS3Spec struct {
-		Bucket            string `json:"bucket"`
-		Prefix            string `json:"prefix,omitempty"`
-		CredentialsSecret string `json:"credentialsSecret"`
-		Region            string `json:"region,omitempty"`
-		EndpointURL       string `json:"endpointUrl,omitempty"`
-		StorageClass      string `json:"storageClass,omitempty"`
-	}
-
-	BackupStorageGCSSpec struct {
-		Bucket            string `json:"bucket"`
-		Prefix            string `json:"prefix,omitempty"`
-		CredentialsSecret string `json:"credentialsSecret"`
-		EndpointURL       string `json:"endpointUrl,omitempty"`
-
-		// STANDARD, NEARLINE, COLDLINE, ARCHIVE
-		StorageClass string `json:"storageClass,omitempty"`
-	}
-
-	BackupStorageAzureSpec struct {
-		// A container name is a valid DNS name that conforms to the Azure naming rules.
-		ContainerName string `json:"containerName"`
-
-		// A prefix is a sub-folder to the backups inside the container
-		Prefix string `json:"prefix,omitempty"`
-
-		// A generated key that can be used to authorize access to data in your account using the Shared Key authorization.
-		CredentialsSecret string `json:"credentialsSecret"`
-
-		// The endpoint allows clients to securely access data
-		EndpointURL string `json:"endpointUrl,omitempty"`
-
-		// Hot (Frequently accessed or modified data), Cool (Infrequently accessed or modified data), Archive (Rarely accessed or modified data)
-		StorageClass string `json:"storageClass,omitempty"`
 	}
 )
 
