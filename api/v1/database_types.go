@@ -16,6 +16,7 @@
 package v1
 
 import (
+	"github.com/percona/percona-backup-mongodb/pbm"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -116,10 +117,22 @@ type (
 		InitImage                string                        `json:"initImage,omitempty"`
 		ImagePullSecrets         []corev1.LocalObjectReference `json:"imagePullSecrets,omitempty"`
 		ImagePullPolicy          corev1.PullPolicy             `json:"imagePullPolicy,omitempty"`
+		Schedule                 []BackupSchedule              `json:"schedule,omitempty"`
 		ServiceAccountName       string                        `json:"serviceAccountName,omitempty"`
 		ContainerSecurityContext *corev1.SecurityContext       `json:"containerSecurityContext,omitempty"`
 		Resources                corev1.ResourceRequirements   `json:"resources,omitempty"`
 		Storages                 map[string]*BackupStorageSpec `json:"storages,omitempty"`
+	}
+
+	BackupSchedule struct {
+		Name    string `json:"name,omitempty"`
+		Enabled bool   `json:"enabled"`
+
+		Schedule         string              `json:"schedule,omitempty"`
+		Keep             int                 `json:"keep,omitempty"`
+		StorageName      string              `json:"storageName,omitempty"`
+		CompressionType  pbm.CompressionType `json:"compressionType,omitempty"`
+		CompressionLevel *int                `json:"compressionLevel,omitempty"`
 	}
 	BackupStorageProviderSpec struct {
 		// A container name is a valid DNS name that conforms to the Azure naming rules.
