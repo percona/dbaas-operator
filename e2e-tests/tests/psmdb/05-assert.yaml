@@ -19,7 +19,7 @@ spec:
     exposeType: ClusterIP
     size: 3
   dbInstance:
-    cpu: "1"
+    cpu: 500m
     memory: 1G
     diskSize: 15G
 status:
@@ -45,7 +45,7 @@ spec:
       name: rs0
       resources:
         requests:
-          cpu:     "1"
+          cpu: 500m
           memory:  1G
       size:        5
       volumeSpec:
