@@ -96,7 +96,7 @@ jobs:
 
   eks-e2e-tests:
     name: E2E tests (EKS)
-    timeout-minutes: 30
+    timeout-minutes: 50
     strategy:
       fail-fast: true
     runs-on: ubuntu-latest
