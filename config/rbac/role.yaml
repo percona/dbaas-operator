@@ -72,7 +72,7 @@ rules:
   - update
   - watch
 - apiGroups:
-  - storage
+  - storage.k8s.io
   resources:
   - storageclasses
   verbs:
