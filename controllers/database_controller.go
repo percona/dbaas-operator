@@ -36,6 +36,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/intstr"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -153,6 +154,7 @@ func (r *DatabaseReconciler) getClusterType(ctx context.Context) (ClusterType, e
 
 }
 func (r *DatabaseReconciler) reconcilePSMDB(ctx context.Context, req ctrl.Request, database *dbaasv1.DatabaseCluster) error {
+	maxUnavailable := intstr.FromInt(1)
 	version, err := r.getOperatorVersion(ctx, types.NamespacedName{
 		Namespace: req.NamespacedName.Namespace,
 		Name:      psmdbDeploymentName,
@@ -255,6 +257,9 @@ func (r *DatabaseReconciler) reconcilePSMDB(ctx context.Context, req ctrl.Reques
 					},
 					// TODO: Add pod disruption budget
 					MultiAZ: psmdbv1.MultiAZ{
+						PodDisruptionBudget: &psmdbv1.PodDisruptionBudgetSpec{
+							MaxUnavailable: &maxUnavailable,
+						},
 						Affinity: affinity,
 						Resources: corev1.ResourceRequirements{
 							Requests: corev1.ResourceList{
