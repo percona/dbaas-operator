@@ -180,7 +180,12 @@ func (r *DatabaseReconciler) reconcilePSMDB(ctx context.Context, req ctrl.Reques
 			Annotations: database.Annotations,
 		},
 	}
+	if err := controllerutil.SetOwnerReference(database, psmdb, r.Client.Scheme()); err != nil {
+		fmt.Println(err)
+		return err
+	}
 	if err := controllerutil.SetControllerReference(database, psmdb, r.Client.Scheme()); err != nil {
+		fmt.Println(err)
 		return err
 	}
 	_, err = controllerutil.CreateOrUpdate(ctx, r.Client, psmdb, func() error {
@@ -374,10 +379,16 @@ func (r *DatabaseReconciler) reconcilePXC(ctx context.Context, req ctrl.Request,
 			Annotations: database.Annotations,
 		},
 	}
+	if err := controllerutil.SetOwnerReference(database, pxc, r.Client.Scheme()); err != nil {
+		fmt.Println(err)
+		return err
+	}
 	if err := controllerutil.SetControllerReference(database, pxc, r.Client.Scheme()); err != nil {
+		fmt.Println(err)
 		return err
 	}
 	_, err = controllerutil.CreateOrUpdate(ctx, r.Client, pxc, func() error {
+		fmt.Println("FUCK")
 		pxc.TypeMeta = metav1.TypeMeta{
 			APIVersion: version.ToAPIVersion(pxcAPIGroup),
 			Kind:       PerconaXtraDBClusterKind,
@@ -468,9 +479,72 @@ func (r *DatabaseReconciler) reconcilePXC(ctx context.Context, req ctrl.Request,
 			}
 			pxc.Spec.PMM.Image = database.Spec.Monitoring.PMM.Image
 		}
+		if database.Spec.Backup != nil {
+			pxc.Spec.Backup = &pxcv1.PXCScheduledBackup{
+				Image:              database.Spec.Backup.Image,
+				ImagePullSecrets:   database.Spec.Backup.ImagePullSecrets,
+				ImagePullPolicy:    database.Spec.Backup.ImagePullPolicy,
+				ServiceAccountName: database.Spec.Backup.ServiceAccountName,
+			}
+			storages := make(map[string]*pxcv1.BackupStorageSpec)
+			var schedules []pxcv1.PXCScheduledBackupSchedule
+			for k, v := range database.Spec.Backup.Storages {
+				var volume pxcv1.VolumeSpec
+				if v.Volume != nil {
+					volume = pxcv1.VolumeSpec(*v.Volume)
+				}
+				storages[k] = &pxcv1.BackupStorageSpec{
+					Type:                     pxcv1.BackupStorageType(v.Type),
+					Volume:                   &volume,
+					NodeSelector:             v.NodeSelector,
+					Resources:                v.Resources,
+					Affinity:                 v.Affinity,
+					Tolerations:              v.Tolerations,
+					Annotations:              v.Annotations,
+					Labels:                   v.Labels,
+					SchedulerName:            v.SchedulerName,
+					PriorityClassName:        v.PriorityClassName,
+					PodSecurityContext:       v.PodSecurityContext,
+					ContainerSecurityContext: v.ContainerSecurityContext,
+					RuntimeClassName:         v.RuntimeClassName,
+					VerifyTLS:                v.VerifyTLS,
+				}
+				switch v.Type {
+				case dbaasv1.BackupStorageS3:
+					storages[k].S3 = &pxcv1.BackupStorageS3Spec{
+						Bucket:            v.StorageProvider.Bucket,
+						CredentialsSecret: v.StorageProvider.CredentialsSecret,
+						Region:            v.StorageProvider.Region,
+						EndpointURL:       v.StorageProvider.EndpointURL,
+					}
+				case dbaasv1.BackupStorageAzure:
+					storages[k].Azure = &pxcv1.BackupStorageAzureSpec{
+						ContainerPath:     v.StorageProvider.ContainerName,
+						CredentialsSecret: v.StorageProvider.CredentialsSecret,
+						StorageClass:      v.StorageProvider.StorageClass,
+						Endpoint:          v.StorageProvider.EndpointURL,
+					}
+				}
+			}
+			for _, v := range database.Spec.Backup.Schedule {
+				schedules = append(schedules, pxcv1.PXCScheduledBackupSchedule{
+					Name:        v.Name,
+					Schedule:    v.Schedule,
+					Keep:        v.Keep,
+					StorageName: v.StorageName,
+				})
+
+			}
+			pxc.Spec.Backup.Storages = storages
+			pxc.Spec.Backup.Schedule = schedules
+
+		}
 		return nil
 	})
 	if err != nil {
+		return err
+	}
+	if err := r.Update(ctx, pxc); err != nil {
 		return err
 	}
 	database.Status.Host = pxc.Status.Host
