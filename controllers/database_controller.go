@@ -327,6 +327,58 @@ func (r *DatabaseReconciler) reconcilePSMDB(ctx context.Context, req ctrl.Reques
 			}
 			psmdb.Spec.PMM.Image = database.Spec.Monitoring.PMM.Image
 		}
+		if database.Spec.Backup != nil {
+			psmdb.Spec.Backup = psmdbv1.BackupSpec{
+				Enabled:                  true,
+				Image:                    database.Spec.Backup.Image,
+				ServiceAccountName:       database.Spec.Backup.ServiceAccountName,
+				ContainerSecurityContext: database.Spec.Backup.ContainerSecurityContext,
+				Resources:                database.Spec.Backup.Resources,
+				Annotations:              database.Spec.Backup.Annotations,
+				Labels:                   database.Spec.Backup.Labels,
+			}
+			storages := make(map[string]psmdbv1.BackupStorageSpec)
+			var tasks []psmdbv1.BackupTaskSpec
+			for k, v := range database.Spec.Backup.Storages {
+				switch v.Type {
+				case dbaasv1.BackupStorageS3:
+					storages[k] = psmdbv1.BackupStorageSpec{
+						Type: psmdbv1.BackupStorageType(v.Type),
+						S3: psmdbv1.BackupStorageS3Spec{
+							Bucket:            v.StorageProvider.Bucket,
+							CredentialsSecret: v.StorageProvider.CredentialsSecret,
+							Region:            v.StorageProvider.Region,
+							EndpointURL:       v.StorageProvider.EndpointURL,
+							StorageClass:      v.StorageProvider.StorageClass,
+						},
+					}
+				case dbaasv1.BackupStorageAzure:
+					storages[k] = psmdbv1.BackupStorageSpec{
+						Type: psmdbv1.BackupStorageType(v.Type),
+						Azure: psmdbv1.BackupStorageAzureSpec{
+							Container:         v.StorageProvider.ContainerName,
+							CredentialsSecret: v.StorageProvider.CredentialsSecret,
+							Prefix:            v.StorageProvider.Prefix,
+						},
+					}
+				}
+			}
+			for _, v := range database.Spec.Backup.Schedule {
+				tasks = append(tasks, psmdbv1.BackupTaskSpec{
+					Name:             v.Name,
+					Enabled:          v.Enabled,
+					Keep:             v.Keep,
+					Schedule:         v.Schedule,
+					StorageName:      v.StorageName,
+					CompressionType:  v.CompressionType,
+					CompressionLevel: v.CompressionLevel,
+				})
+
+			}
+			psmdb.Spec.Backup.Storages = storages
+			psmdb.Spec.Backup.Tasks = tasks
+
+		}
 
 		return nil
 	})

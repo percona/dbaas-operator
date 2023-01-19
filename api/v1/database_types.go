@@ -122,6 +122,8 @@ type (
 		ContainerSecurityContext *corev1.SecurityContext       `json:"containerSecurityContext,omitempty"`
 		Resources                corev1.ResourceRequirements   `json:"resources,omitempty"`
 		Storages                 map[string]*BackupStorageSpec `json:"storages,omitempty"`
+		Annotations              map[string]string             `json:"annotations,omitempty"`
+		Labels                   map[string]string             `json:"labels,omitempty"`
 	}
 	BackupSchedule struct {
 		Name             string              `json:"name,omitempty"`
