@@ -378,7 +378,6 @@ func (r *DatabaseReconciler) reconcilePXC(ctx context.Context, req ctrl.Request,
 		return err
 	}
 	_, err = controllerutil.CreateOrUpdate(ctx, r.Client, pxc, func() error {
-		fmt.Println("FUCK")
 		pxc.TypeMeta = metav1.TypeMeta{
 			APIVersion: version.ToAPIVersion(pxcAPIGroup),
 			Kind:       PerconaXtraDBClusterKind,
@@ -532,9 +531,6 @@ func (r *DatabaseReconciler) reconcilePXC(ctx context.Context, req ctrl.Request,
 		return nil
 	})
 	if err != nil {
-		return err
-	}
-	if err := r.Update(ctx, pxc); err != nil {
 		return err
 	}
 	database.Status.Host = pxc.Status.Host
