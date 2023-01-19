@@ -300,8 +300,6 @@ spec:
                           type: string
                         storageName:
                           type: string
-                      required:
-                      - enabled
                       type: object
                     type: array
                   serviceAccountName:
@@ -1664,8 +1662,6 @@ spec:
                                 GCP
                               type: string
                           required:
-                          - bucket
-                          - containerName
                           - credentialsSecret
                           type: object
                         tolerations:

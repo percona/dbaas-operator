@@ -530,13 +530,8 @@ func (r *DatabaseReconciler) reconcilePXC(ctx context.Context, req ctrl.Request,
 			storages := make(map[string]*pxcv1.BackupStorageSpec)
 			var schedules []pxcv1.PXCScheduledBackupSchedule
 			for k, v := range database.Spec.Backup.Storages {
-				var volume pxcv1.VolumeSpec
-				if v.Volume != nil {
-					volume = pxcv1.VolumeSpec(*v.Volume)
-				}
 				storages[k] = &pxcv1.BackupStorageSpec{
 					Type:                     pxcv1.BackupStorageType(v.Type),
-					Volume:                   &volume,
 					NodeSelector:             v.NodeSelector,
 					Resources:                v.Resources,
 					Affinity:                 v.Affinity,
@@ -623,6 +618,10 @@ func (r *DatabaseReconciler) addPXCKnownTypes(scheme *runtime.Scheme) error {
 		return err
 	}
 	pxcSchemeGroupVersion := schema.GroupVersion{Group: "pxc.percona.com", Version: strings.Replace("v"+version.String(), ".", "-", -1)}
+	ver, _ := goversion.NewVersion("v1.11.0")
+	if version.version.GreaterThan(ver) {
+		pxcSchemeGroupVersion = schema.GroupVersion{Group: "pxc.percona.com", Version: "v1"}
+	}
 	scheme.AddKnownTypes(pxcSchemeGroupVersion,
 		&pxcv1.PerconaXtraDBCluster{}, &pxcv1.PerconaXtraDBClusterList{},
 	)
@@ -661,7 +660,6 @@ func (r *DatabaseReconciler) addPXCToScheme(scheme *runtime.Scheme) error {
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *DatabaseReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	fmt.Println(os.Getenv("WATCH_NAMESPACE"))
 	unstructuredResource := &unstructured.Unstructured{}
 	unstructuredResource.SetGroupVersionKind(schema.GroupVersionKind{
 		Group:   "apiextensions.k8s.io",

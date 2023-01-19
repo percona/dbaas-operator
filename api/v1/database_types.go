@@ -127,7 +127,7 @@ type (
 	}
 	BackupSchedule struct {
 		Name             string              `json:"name,omitempty"`
-		Enabled          bool                `json:"enabled"`
+		Enabled          bool                `json:"enabled,omitempty"`
 		Schedule         string              `json:"schedule,omitempty"`
 		Keep             int                 `json:"keep,omitempty"`
 		StorageName      string              `json:"storageName,omitempty"`
@@ -136,9 +136,9 @@ type (
 	}
 	BackupStorageProviderSpec struct {
 		// A container name is a valid DNS name that conforms to the Azure naming rules.
-		ContainerName string `json:"containerName"`
+		ContainerName string `json:"containerName,omitempty"`
 
-		Bucket            string `json:"bucket"`
+		Bucket            string `json:"bucket,omitempty"`
 		Prefix            string `json:"prefix,omitempty"`
 		CredentialsSecret string `json:"credentialsSecret"`
 		Region            string `json:"region,omitempty"`
