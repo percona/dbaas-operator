@@ -180,12 +180,7 @@ func (r *DatabaseReconciler) reconcilePSMDB(ctx context.Context, req ctrl.Reques
 			Annotations: database.Annotations,
 		},
 	}
-	if err := controllerutil.SetOwnerReference(database, psmdb, r.Client.Scheme()); err != nil {
-		fmt.Println(err)
-		return err
-	}
 	if err := controllerutil.SetControllerReference(database, psmdb, r.Client.Scheme()); err != nil {
-		fmt.Println(err)
 		return err
 	}
 	_, err = controllerutil.CreateOrUpdate(ctx, r.Client, psmdb, func() error {
@@ -379,12 +374,7 @@ func (r *DatabaseReconciler) reconcilePXC(ctx context.Context, req ctrl.Request,
 			Annotations: database.Annotations,
 		},
 	}
-	if err := controllerutil.SetOwnerReference(database, pxc, r.Client.Scheme()); err != nil {
-		fmt.Println(err)
-		return err
-	}
 	if err := controllerutil.SetControllerReference(database, pxc, r.Client.Scheme()); err != nil {
-		fmt.Println(err)
 		return err
 	}
 	_, err = controllerutil.CreateOrUpdate(ctx, r.Client, pxc, func() error {
