@@ -41,7 +41,7 @@ spec:
         storageProvider:
           containerName: test
           credentialsSecret: test-pxc-cluster-backup-azure
-          endpointUrl: https:/example.com
+          endpointUrl: https://example.com
           storageClass: Hot
     schedule:
       - name: daily-backup

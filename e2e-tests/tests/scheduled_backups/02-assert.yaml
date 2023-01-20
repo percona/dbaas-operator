@@ -43,7 +43,7 @@ spec:
         azure:
           containerName: test
           credentialsSecret: test-pxc-cluster-backup-azure
-          endpointUrl: https:/example.com
+          endpointUrl: https://example.com
           storageClass: Hot
         s3:
           bucket: ""
