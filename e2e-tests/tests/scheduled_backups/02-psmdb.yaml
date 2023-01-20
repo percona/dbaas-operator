@@ -41,11 +41,13 @@ spec:
           endpointUrl: https:/example.com
           storageClass: Hot
     schedule:
-      - name: daily-backup
-        schedule: "0 0 * * *"
+      - enabled: true
         keep: 5
+        name: daily-backup
+        schedule: "0 0 * * *"
         storageName: aws
-      - name: azure-backup
-        schedule: "0 0 * * *"
+      - enabled: true
         keep: 5
+        name: azure-backup
+        schedule: "0 0 * * *"
         storageName: azure

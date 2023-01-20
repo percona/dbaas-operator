@@ -34,23 +34,27 @@ spec:
     storages:
       aws:
         type: s3
-        storageProvider:
+        s3:
           bucket: test
           credentialsSecret: test-pxc-cluster-backup-s3
           region: us-west-1
       azure:
         type: azure
-        storageProvider:
+        azure:
           containerName: test
           credentialsSecret: test-pxc-cluster-backup-azure
           endpointUrl: https:/example.com
           storageClass: Hot
+        s3:
+          bucket: ""
     tasks:
       - name: daily-backup
         schedule: "0 0 * * *"
         keep: 5
         storageName: aws
+        enabled: true
       - name: azure-backup
         schedule: "0 0 * * *"
         keep: 5
         storageName: azure
+        enabled: true
