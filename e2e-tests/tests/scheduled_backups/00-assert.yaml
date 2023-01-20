@@ -59,7 +59,6 @@ spec:
     singular: perconaxtradbcluster
   scope: Namespaced
 ---
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
