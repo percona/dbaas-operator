@@ -41,10 +41,8 @@ spec:
       azure:
         type: azure
         azure:
-          containerName: test
+          container: test
           credentialsSecret: test-pxc-cluster-backup-azure
-          endpointUrl: https://example.com
-          storageClass: Hot
         s3:
           bucket: ""
     tasks:
