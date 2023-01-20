@@ -142,6 +142,7 @@ type (
 		EndpointURL       string `json:"endpointUrl,omitempty"`
 
 		// STANDARD, NEARLINE, COLDLINE, ARCHIVE for GCP
+		// Hot (Frequently accessed or modified data), Cool (Infrequently accessed or modified data), Archive (Rarely accessed or modified data) for Azure
 		StorageClass string `json:"storageClass,omitempty"`
 	}
 	BackupStorageSpec struct {
