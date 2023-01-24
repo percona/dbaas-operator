@@ -19,26 +19,36 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-type RestoreState string
+const (
+	BackupStorageFilesystem BackupStorageType = "filesystem"
+	BackupStorageS3         BackupStorageType = "s3"
+	BackupStorageGCS        BackupStorageType = "gcs"
+	BackupStorageAzure      BackupStorageType = "azure"
+)
 
-// DatabaseClusterRestoreSpec defines the desired state of DatabaseClusterRestore
-type DatabaseClusterRestoreSpec struct {
-	DatabaseCluster     string        `json:"databaseCluster"`
-	DatabaseClusterType EngineType    `json:"databaseClusterType"`
-	BackupName          string        `json:"backupName"`
-	BackupSource        *BackupSource `json:"backupSource,omitempty"`
-}
-type BackupSource struct {
-	Destination           string                     `json:"destination,omitempty"`
-	StorageName           string                     `json:"storageName,omitempty"`
-	S3                    *BackupStorageProviderSpec `json:"s3,omitempty"`
-	Azure                 *BackupStorageProviderSpec `json:"azure,omitempty"`
-	StorageType           BackupStorageType          `json:"storage_type"`
-	Image                 string                     `json:"image,omitempty"`
-	SSLSecretName         string                     `json:"sslSecretName,omitempty"`
-	SSLInternalSecretName string                     `json:"sslInternalSecretName,omitempty"`
-	VaultSecretName       string                     `json:"vaultSecretName,omitempty"`
-}
+type (
+	RestoreState      string
+	BackupStorageType string
+
+	// DatabaseClusterRestoreSpec defines the desired state of DatabaseClusterRestore
+	DatabaseClusterRestoreSpec struct {
+		DatabaseCluster string        `json:"databaseCluster"`
+		DatabaseType    EngineType    `json:"databaseType"`
+		BackupName      string        `json:"backupName,omitempty"`
+		BackupSource    *BackupSource `json:"backupSource,omitempty"`
+	}
+	BackupSource struct {
+		Destination           string                     `json:"destination,omitempty"`
+		StorageName           string                     `json:"storageName,omitempty"`
+		S3                    *BackupStorageProviderSpec `json:"s3,omitempty"`
+		Azure                 *BackupStorageProviderSpec `json:"azure,omitempty"`
+		StorageType           BackupStorageType          `json:"storage_type"`
+		Image                 string                     `json:"image,omitempty"`
+		SSLSecretName         string                     `json:"sslSecretName,omitempty"`
+		SSLInternalSecretName string                     `json:"sslInternalSecretName,omitempty"`
+		VaultSecretName       string                     `json:"vaultSecretName,omitempty"`
+	}
+)
 
 // DatabaseClusterRestoreStatus defines the observed state of DatabaseClusterRestore
 type DatabaseClusterRestoreStatus struct {
@@ -46,6 +56,7 @@ type DatabaseClusterRestoreStatus struct {
 	CompletedAt   *metav1.Time       `json:"completed,omitempty"`
 	LastScheduled *metav1.Time       `json:"lastscheduled,omitempty"`
 	Conditions    []metav1.Condition `json:"conditions,omitempty"`
+	Message       string             `json:"message,omitempty"`
 	Destination   string             `json:"destination,omitempty"`
 	StorageName   string             `json:"storageName,omitempty"`
 }

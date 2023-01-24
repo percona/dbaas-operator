@@ -23,11 +23,6 @@ import (
 )
 
 const (
-	BackupStorageFilesystem BackupStorageType = "filesystem"
-	BackupStorageS3         BackupStorageType = "s3"
-	BackupStorageGCS        BackupStorageType = "gcs"
-	BackupStorageAzure      BackupStorageType = "azure"
-
 	PXCEngine   EngineType = "pxc"
 	PSMDBEngine EngineType = "psmdb"
 
@@ -49,9 +44,8 @@ type (
 	// for PXC clusters and mongos for PSMDB clusters.
 	//
 	// Once PG support will be added, it can be pg-bouncer or something else.
-	LoadBalancerType  string
-	BackupStorageType string
-	AppState          string
+	LoadBalancerType string
+	AppState         string
 	// DatabaseSpec defines the desired state of Database
 	DatabaseSpec struct {
 		// Database type stands for supported databases by the PMM API
