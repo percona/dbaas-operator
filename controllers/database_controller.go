@@ -54,6 +54,7 @@ const (
 
 	pxcDeploymentName   = "percona-xtradb-cluster-operator"
 	psmdbDeploymentName = "percona-server-mongodb-operator"
+	pxcBackupImageTmpl  = "percona/percona-xtradb-cluster-operator:%s-pxc8.0-backup"
 
 	psmdbCRDName                     = "perconaservermongodbs.psmdb.percona.com"
 	pxcCRDName                       = "perconaxtradbclusters.pxc.percona.com"
@@ -520,7 +521,10 @@ func (r *DatabaseReconciler) reconcilePXC(ctx context.Context, req ctrl.Request,
 			}
 			pxc.Spec.PMM.Image = database.Spec.Monitoring.PMM.Image
 		}
-		if database.Spec.Backup != nil && database.Spec.Backup.Image != "" {
+		if database.Spec.Backup != nil {
+			if database.Spec.Backup.Image == "" {
+				database.Spec.Backup.Image = fmt.Sprintf(pxcBackupImageTmpl, pxc.Spec.CRVersion)
+			}
 			pxc.Spec.Backup = &pxcv1.PXCScheduledBackup{
 				Image:              database.Spec.Backup.Image,
 				ImagePullSecrets:   database.Spec.Backup.ImagePullSecrets,

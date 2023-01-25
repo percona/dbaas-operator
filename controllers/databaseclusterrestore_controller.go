@@ -87,6 +87,14 @@ func (r *DatabaseClusterRestoreReconciler) Reconcile(ctx context.Context, req ct
 		return reconcile.Result{}, err
 	}
 	if cr.Spec.DatabaseType == dbaasv1.PXCEngine {
+		pxc := &pxcv1.PerconaXtraDBCluster{}
+		err = r.Get(ctx, types.NamespacedName{Name: cr.Spec.DatabaseCluster, Namespace: cr.Namespace}, pxc)
+		if err != nil {
+			return reconcile.Result{}, err
+		}
+		if cr.Spec.BackupSource != nil && cr.Spec.BackupSource.Image == "" {
+			cr.Spec.BackupSource.Image = fmt.Sprintf(pxcBackupImageTmpl, pxc.Spec.CRVersion)
+		}
 		if err := r.restorePXC(cr); err != nil {
 			logger.Error(err, "unable to restore PXC Cluster")
 			return reconcile.Result{}, err
