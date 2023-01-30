@@ -64,7 +64,7 @@ type DatabaseClusterRestoreStatus struct {
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
 // +kubebuilder:subresource:status
-// +kubebuilder:resource:shortName="pxc-backup";"pxc-backups"
+// +kubebuilder:resource:shortName="dbc-restore";"dbc-restores"
 // +kubebuilder:printcolumn:name="Cluster",type="string",JSONPath=".spec.databaseCluster",description="Cluster name"
 // +kubebuilder:printcolumn:name="Storage",type="string",JSONPath=".status.storageName",description="Storage name from pxc spec"
 // +kubebuilder:printcolumn:name="Destination",type="string",JSONPath=".status.destination",description="Backup destination"

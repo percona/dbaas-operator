@@ -13,8 +13,8 @@ spec:
     listKind: DatabaseClusterRestoreList
     plural: databaseclusterrestores
     shortNames:
-    - pxc-backup
-    - pxc-backups
+    - dbc-restore
+    - dbc-restores
     singular: databaseclusterrestore
   scope: Namespaced
   versions:

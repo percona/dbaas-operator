@@ -187,7 +187,7 @@ type DatabaseClusterStatus struct {
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
-// +kubebuilder:resource:shortName=db;
+// +kubebuilder:resource:shortName=db;dbc
 // +kubebuilder:printcolumn:name="Size",type="string",JSONPath=".status.size"
 // +kubebuilder:printcolumn:name="Ready",type="string",JSONPath=".status.ready"
 // +kubebuilder:printcolumn:name="Status",type="string",JSONPath=".status.status"
