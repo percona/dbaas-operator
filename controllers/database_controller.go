@@ -52,9 +52,10 @@ const (
 	PerconaXtraDBClusterKind = "PerconaXtraDBCluster"
 	PerconaServerMongoDBKind = "PerconaServerMongoDB"
 
-	pxcDeploymentName   = "percona-xtradb-cluster-operator"
-	psmdbDeploymentName = "percona-server-mongodb-operator"
-	pxcBackupImageTmpl  = "percona/percona-xtradb-cluster-operator:%s-pxc8.0-backup"
+	pxcDeploymentName    = "percona-xtradb-cluster-operator"
+	psmdbDeploymentName  = "percona-server-mongodb-operator"
+	pxcBackupImageTmpl   = "percona/percona-xtradb-cluster-operator:%s-pxc8.0-backup"
+	psmdbBackupImageTmpl = "percona/percona-server-mongodb-operator:%s-backup"
 
 	psmdbCRDName                     = "perconaservermongodbs.psmdb.percona.com"
 	pxcCRDName                       = "perconaxtradbclusters.pxc.percona.com"
@@ -328,7 +329,10 @@ func (r *DatabaseReconciler) reconcilePSMDB(ctx context.Context, req ctrl.Reques
 			}
 			psmdb.Spec.PMM.Image = database.Spec.Monitoring.PMM.Image
 		}
-		if database.Spec.Backup != nil && database.Spec.Backup.Image != "" {
+		if database.Spec.Backup != nil {
+			if database.Spec.Backup.Image == "" {
+				database.Spec.Backup.Image = fmt.Sprintf(psmdbBackupImageTmpl, database.Spec.CRVersion)
+			}
 			psmdb.Spec.Backup = psmdbv1.BackupSpec{
 				Enabled:                  true,
 				Image:                    database.Spec.Backup.Image,
