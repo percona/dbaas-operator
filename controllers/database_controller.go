@@ -331,7 +331,7 @@ func (r *DatabaseReconciler) reconcilePSMDB(ctx context.Context, req ctrl.Reques
 		}
 		if database.Spec.Backup != nil {
 			if database.Spec.Backup.Image == "" {
-				database.Spec.Backup.Image = fmt.Sprintf(psmdbBackupImageTmpl, database.Spec.CRVersion)
+				database.Spec.Backup.Image = fmt.Sprintf(psmdbBackupImageTmpl, psmdb.Spec.CRVersion)
 			}
 			psmdb.Spec.Backup = psmdbv1.BackupSpec{
 				Enabled:                  true,
