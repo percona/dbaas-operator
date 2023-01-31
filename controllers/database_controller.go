@@ -432,6 +432,12 @@ func (r *DatabaseReconciler) reconcilePXC(ctx context.Context, req ctrl.Request,
 		}
 	}
 	if current.Spec.Pause != database.Spec.Pause {
+		// During the restoration of PXC clusters
+		// They need to be shutted down
+		//
+		// It's not a good idea to shutdown them from DatabaseCluster object perspective
+		// hence we have this piece of the migration of spec.pause field
+		// from PerconaXtraDBCluster object to a DatabaseCluster object.
 
 		_, ok := database.ObjectMeta.Annotations[restartAnnotationKey]
 		if !ok {
