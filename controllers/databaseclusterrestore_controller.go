@@ -18,10 +18,9 @@ package controllers
 import (
 	"context"
 	"fmt"
-	"time"
 
-	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
@@ -32,8 +31,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	dbaasv1 "github.com/percona/dbaas-operator/api/v1"
-	batchv1 "k8s.io/api/batch/v1"
-	corev1 "k8s.io/api/core/v1"
 
 	psmdbv1 "github.com/percona/percona-server-mongodb-operator/pkg/apis/psmdb/v1"
 	pxcv1 "github.com/percona/percona-xtradb-cluster-operator/pkg/apis/pxc/v1"
@@ -41,10 +38,12 @@ import (
 )
 
 const (
-	pxcRestoreKind   = "PerconaXtraDBClusterRestore"
-	pxcRestoreAPI    = "pxc.percona.com/v1"
-	psmdbRestoreKind = "PerconaServerMongoDBRestore"
-	psmdbRestoreAPI  = "psmdb.percona.com/v1"
+	pxcRestoreKind      = "PerconaXtraDBClusterRestore"
+	pxcRestoreAPI       = "pxc.percona.com/v1"
+	psmdbRestoreKind    = "PerconaServerMongoDBRestore"
+	psmdbRestoreAPI     = "psmdb.percona.com/v1"
+	psmdbRestoreCRDName = "perconaservermongodbrestores.psmdb.percona.com"
+	pxcRestoreCRDName   = "perconaxtradbclusterrestores.pxc.percona.com"
 )
 
 // DatabaseClusterRestoreReconciler reconciles a DatabaseClusterRestore object
@@ -71,36 +70,22 @@ func (r *DatabaseClusterRestoreReconciler) Reconcile(ctx context.Context, req ct
 		}
 		return reconcile.Result{}, err
 	}
-	if cr.Status.State != "" {
-		return reconcile.Result{}, nil
-	}
 
-	cluster := &dbaasv1.DatabaseCluster{}
-	err = r.Get(ctx, types.NamespacedName{Name: cr.Spec.DatabaseCluster, Namespace: cr.Namespace}, cluster)
-	if err != nil {
-		logger.Error(err, "unable to get DatabaseCluster")
-		return reconcile.Result{}, err
-	}
-	orig := cluster.DeepCopy()
-
-	err = r.stopCluster(cluster.DeepCopy())
-	if err != nil {
-		logger.Error(err, "unable to stop DatabaseCluster")
-		return reconcile.Result{}, err
-	}
 	if cr.Spec.DatabaseType == dbaasv1.PXCEngine {
-		pxc := &pxcv1.PerconaXtraDBCluster{}
-		err = r.Get(ctx, types.NamespacedName{Name: cr.Spec.DatabaseCluster, Namespace: cr.Namespace}, pxc)
-		if err != nil {
-			return reconcile.Result{}, err
-		}
-		if cr.Spec.BackupSource != nil && cr.Spec.BackupSource.Image == "" {
-			cr.Spec.BackupSource.Image = fmt.Sprintf(pxcBackupImageTmpl, pxc.Spec.CRVersion)
-		}
 		if err := r.restorePXC(cr); err != nil {
 			logger.Error(err, "unable to restore PXC Cluster")
 			return reconcile.Result{}, err
 		}
+		pxcCR := &pxcv1.PerconaXtraDBClusterRestore{}
+		err = r.Get(context.Background(), types.NamespacedName{Name: pxcCR.Name, Namespace: pxcCR.Namespace}, pxcCR)
+		if err != nil {
+			return reconcile.Result{}, err
+		}
+		cr.Status.State = dbaasv1.RestoreState(pxcCR.Status.State)
+		cr.Status.CompletedAt = pxcCR.Status.CompletedAt
+		cr.Status.LastScheduled = pxcCR.Status.LastScheduled
+		cr.Status.Message = pxcCR.Status.Comments
+		r.Status().Update(context.Background(), cr)
 	}
 	if cr.Spec.DatabaseType == dbaasv1.PSMDBEngine {
 		psmdb := &psmdbv1.PerconaServerMongoDB{}
@@ -115,23 +100,16 @@ func (r *DatabaseClusterRestoreReconciler) Reconcile(ctx context.Context, req ct
 			logger.Error(err, "unable to restore PXC Cluster")
 			return reconcile.Result{}, err
 		}
+		pxcCR := &psmdbv1.PerconaServerMongoDBRestore{}
+		err = r.Get(context.Background(), types.NamespacedName{Name: pxcCR.Name, Namespace: pxcCR.Namespace}, pxcCR)
+		if err != nil {
+			return reconcile.Result{}, err
+		}
+		cr.Status.State = dbaasv1.RestoreState(pxcCR.Status.State)
+		cr.Status.CompletedAt = pxcCR.Status.CompletedAt
+		cr.Status.Message = pxcCR.Status.Error
+		r.Status().Update(context.Background(), cr)
 	}
-
-	err = r.startCluster(orig)
-	if err != nil {
-		logger.Error(err, "failed to start DatabaseCluster")
-		return reconcile.Result{}, err
-	}
-	pxcCR := &pxcv1.PerconaXtraDBClusterRestore{}
-	err = r.Get(context.Background(), types.NamespacedName{Name: pxcCR.Name, Namespace: pxcCR.Namespace}, pxcCR)
-	if err != nil {
-		return reconcile.Result{}, err
-	}
-	cr.Status.State = dbaasv1.RestoreState(pxcCR.Status.State)
-	cr.Status.CompletedAt = pxcCR.Status.CompletedAt
-	cr.Status.LastScheduled = pxcCR.Status.LastScheduled
-	cr.Status.Message = pxcCR.Status.Comments
-	r.Status().Update(context.Background(), cr)
 
 	return ctrl.Result{}, nil
 }
@@ -183,25 +161,7 @@ func (r *DatabaseClusterRestoreReconciler) restorePSMDB(restore *dbaasv1.Databas
 	if err != nil {
 		return err
 	}
-	// Waiting for the job to complete
-	for {
-		time.Sleep(time.Second)
-
-		cr := &psmdbv1.PerconaServerMongoDBRestore{}
-		err := r.Get(context.Background(), types.NamespacedName{Name: psmdbCR.Name, Namespace: psmdbCR.Namespace}, cr)
-		if err != nil {
-			return err
-		}
-		restore.Status.State = dbaasv1.RestoreState(cr.Status.State)
-		restore.Status.Message = cr.Status.Error
-		restore.Status.CompletedAt = cr.Status.CompletedAt
-		r.Status().Update(context.Background(), restore)
-		if cr.Status.State == psmdbv1.RestoreStateReady || cr.Status.State == psmdbv1.RestoreStateError {
-			return nil
-		}
-
-	}
-
+	return nil
 }
 func (r *DatabaseClusterRestoreReconciler) restorePXC(restore *dbaasv1.DatabaseClusterRestore) error {
 	pxcCR := &pxcv1.PerconaXtraDBClusterRestore{
@@ -252,78 +212,8 @@ func (r *DatabaseClusterRestoreReconciler) restorePXC(restore *dbaasv1.DatabaseC
 	if err != nil {
 		return err
 	}
-	// Waiting for the job to complete
-	for {
-		time.Sleep(time.Second)
-
-		cr := &pxcv1.PerconaXtraDBClusterRestore{}
-		err := r.Get(context.Background(), types.NamespacedName{Name: pxcCR.Name, Namespace: pxcCR.Namespace}, cr)
-		if err != nil {
-			return err
-		}
-		restore.Status.State = dbaasv1.RestoreState(cr.Status.State)
-		restore.Status.CompletedAt = cr.Status.CompletedAt
-		restore.Status.LastScheduled = cr.Status.LastScheduled
-		restore.Status.Message = cr.Status.Comments
-		r.Status().Update(context.Background(), restore)
-		jobName := "restore-job-" + cr.Name + "-" + cr.Spec.PXCCluster
-		checkJob := batchv1.Job{}
-		err = r.Get(context.Background(), types.NamespacedName{Name: jobName, Namespace: pxcCR.Namespace}, &checkJob)
-		if err != nil && !k8serrors.IsNotFound(err) {
-			return errors.Wrap(err, "get job status")
-		}
-		for _, cond := range checkJob.Status.Conditions {
-			if cond.Status != corev1.ConditionTrue {
-				continue
-			}
-			switch cond.Type {
-			case batchv1.JobComplete:
-				return nil
-			case batchv1.JobFailed:
-				return errors.New(cond.Message)
-			}
-		}
-
-	}
-
-}
-
-func (r *DatabaseClusterRestoreReconciler) startCluster(cluster *dbaasv1.DatabaseCluster) error {
-	fmt.Println("starting cluster")
-	current := &dbaasv1.DatabaseCluster{}
-	if err := r.Get(context.Background(), types.NamespacedName{Name: cluster.Name, Namespace: cluster.Namespace}, current); err != nil {
-		return err
-	}
-	current.Spec = cluster.Spec
-	current.Spec.Pause = false
-
-	if err := r.Update(context.Background(), current); err != nil {
-		return err
-	}
-	timeout, cancel := context.WithTimeout(context.Background(), 20*time.Minute)
-	defer cancel()
-	for {
-		time.Sleep(time.Second)
-		current := &dbaasv1.DatabaseCluster{}
-		if err := r.Get(context.Background(), types.NamespacedName{Name: cluster.Name, Namespace: cluster.Namespace}, current); err != nil {
-			return err
-		}
-		if current.Status.State == dbaasv1.AppStateReady {
-			break
-		}
-		select {
-		case <-timeout.Done():
-			return errors.New("timeout waiting for a condition")
-		default:
-		}
-
-	}
 	return nil
-}
 
-func (r *DatabaseClusterRestoreReconciler) stopCluster(cluster *dbaasv1.DatabaseCluster) error {
-	cluster.Spec.Pause = true
-	return r.Update(context.Background(), cluster)
 }
 
 func (r *DatabaseClusterRestoreReconciler) addPXCKnownTypes(scheme *runtime.Scheme) error {
@@ -356,13 +246,31 @@ func (r *DatabaseClusterRestoreReconciler) addPSMDBToScheme(scheme *runtime.Sche
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *DatabaseClusterRestoreReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	if err := r.addPXCToScheme(r.Scheme); err != nil {
-		return err
+	unstructuredResource := &unstructured.Unstructured{}
+	unstructuredResource.SetGroupVersionKind(schema.GroupVersionKind{
+		Group:   "apiextensions.k8s.io",
+		Kind:    "CustomResourceDefinition",
+		Version: "v1",
+	})
+	controller := ctrl.NewControllerManagedBy(mgr).
+		For(&dbaasv1.DatabaseClusterRestore{})
+	err := r.Get(context.Background(), types.NamespacedName{Name: pxcRestoreCRDName}, unstructuredResource)
+	fmt.Println(unstructuredResource, err)
+	if err == nil {
+		if err := r.addPXCToScheme(r.Scheme); err == nil {
+			controller.Owns(&pxcv1.PerconaXtraDBClusterRestore{})
+			fmt.Println("Registered PXC")
+		}
+	}
+	err = r.Get(context.Background(), types.NamespacedName{Name: psmdbRestoreCRDName}, unstructuredResource)
+	if err == nil {
+		if err := r.addPSMDBToScheme(r.Scheme); err == nil {
+			controller.Owns(&psmdbv1.PerconaServerMongoDBRestore{})
+			fmt.Println("Registered psmdb")
+		}
 	}
 	if err := r.addPSMDBToScheme(r.Scheme); err != nil {
 		return err
 	}
-	return ctrl.NewControllerManagedBy(mgr).
-		For(&dbaasv1.DatabaseClusterRestore{}).
-		Complete(r)
+	return controller.Complete(r)
 }

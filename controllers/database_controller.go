@@ -423,6 +423,21 @@ func (r *DatabaseReconciler) reconcilePXC(ctx context.Context, req ctrl.Request,
 	if clusterType == ClusterTypeEKS {
 		affinity.TopologyKey = pointer.ToString("kubernetes.io/hostname")
 	}
+	current := &pxcv1.PerconaXtraDBCluster{}
+	err = r.Get(ctx, types.NamespacedName{Name: database.Name, Namespace: database.Namespace}, current)
+	if err != nil {
+
+		if err = client.IgnoreNotFound(err); err != nil {
+			return err
+		}
+	}
+	if current.Spec.Pause != database.Spec.Pause {
+
+		_, ok := database.ObjectMeta.Annotations[restartAnnotationKey]
+		if !ok {
+			database.Spec.Pause = current.Spec.Pause
+		}
+	}
 	pxc := &pxcv1.PerconaXtraDBCluster{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        database.Name,
