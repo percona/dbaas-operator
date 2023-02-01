@@ -81,10 +81,10 @@ func (r *DatabaseClusterRestoreReconciler) Reconcile(ctx context.Context, req ct
 		if err != nil {
 			return reconcile.Result{}, err
 		}
-		cr.Status.State = dbaasv1.RestoreState(pxcCR.Status.State)
-		cr.Status.CompletedAt = pxcCR.Status.CompletedAt
-		cr.Status.LastScheduled = pxcCR.Status.LastScheduled
-		cr.Status.Message = pxcCR.Status.Comments
+		if err := r.restorePXC(cr); err != nil {
+			logger.Error(err, "unable to restore PXC Cluster")
+			return reconcile.Result{}, err
+		}
 		r.Status().Update(context.Background(), cr)
 	}
 	if cr.Spec.DatabaseType == dbaasv1.PSMDBEngine {
@@ -100,15 +100,6 @@ func (r *DatabaseClusterRestoreReconciler) Reconcile(ctx context.Context, req ct
 			logger.Error(err, "unable to restore PXC Cluster")
 			return reconcile.Result{}, err
 		}
-		pxcCR := &psmdbv1.PerconaServerMongoDBRestore{}
-		err = r.Get(context.Background(), types.NamespacedName{Name: pxcCR.Name, Namespace: pxcCR.Namespace}, pxcCR)
-		if err != nil {
-			return reconcile.Result{}, err
-		}
-		cr.Status.State = dbaasv1.RestoreState(pxcCR.Status.State)
-		cr.Status.CompletedAt = pxcCR.Status.CompletedAt
-		cr.Status.Message = pxcCR.Status.Error
-		r.Status().Update(context.Background(), cr)
 	}
 
 	return ctrl.Result{}, nil
@@ -161,7 +152,15 @@ func (r *DatabaseClusterRestoreReconciler) restorePSMDB(restore *dbaasv1.Databas
 	if err != nil {
 		return err
 	}
-	return nil
+	psmdbCR = &psmdbv1.PerconaServerMongoDBRestore{}
+	err = r.Get(context.Background(), types.NamespacedName{Name: restore.Name, Namespace: restore.Namespace}, psmdbCR)
+	if err != nil {
+		return err
+	}
+	restore.Status.State = dbaasv1.RestoreState(psmdbCR.Status.State)
+	restore.Status.CompletedAt = psmdbCR.Status.CompletedAt
+	restore.Status.Message = psmdbCR.Status.Error
+	return r.Status().Update(context.Background(), restore)
 }
 func (r *DatabaseClusterRestoreReconciler) restorePXC(restore *dbaasv1.DatabaseClusterRestore) error {
 	pxcCR := &pxcv1.PerconaXtraDBClusterRestore{
@@ -212,8 +211,16 @@ func (r *DatabaseClusterRestoreReconciler) restorePXC(restore *dbaasv1.DatabaseC
 	if err != nil {
 		return err
 	}
-	return nil
-
+	pxcCR = &pxcv1.PerconaXtraDBClusterRestore{}
+	err = r.Get(context.Background(), types.NamespacedName{Name: restore.Name, Namespace: restore.Namespace}, pxcCR)
+	if err != nil {
+		return err
+	}
+	restore.Status.State = dbaasv1.RestoreState(pxcCR.Status.State)
+	restore.Status.CompletedAt = pxcCR.Status.CompletedAt
+	restore.Status.LastScheduled = pxcCR.Status.LastScheduled
+	restore.Status.Message = pxcCR.Status.Comments
+	return r.Status().Update(context.Background(), restore)
 }
 
 func (r *DatabaseClusterRestoreReconciler) addPXCKnownTypes(scheme *runtime.Scheme) error {
