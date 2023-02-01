@@ -18,6 +18,7 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"time"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -44,6 +45,7 @@ const (
 	psmdbRestoreAPI     = "psmdb.percona.com/v1"
 	psmdbRestoreCRDName = "perconaservermongodbrestores.psmdb.percona.com"
 	pxcRestoreCRDName   = "perconaxtradbclusterrestores.pxc.percona.com"
+	clusterReadyTimeout = 10 * time.Minute
 )
 
 // DatabaseClusterRestoreReconciler reconciles a DatabaseClusterRestore object
@@ -86,7 +88,31 @@ func (r *DatabaseClusterRestoreReconciler) Reconcile(ctx context.Context, req ct
 
 	return ctrl.Result{}, nil
 }
+func (r *DatabaseClusterRestoreReconciler) ensureClusterIsReady(restore *dbaasv1.DatabaseClusterRestore) error {
+	timeoutCtx, cancel := context.WithTimeout(context.Background(), 15*time.Minute)
+	defer cancel()
+	for {
+		select {
+		case <-timeoutCtx.Done():
+			return errors.New("wait timeout exceeded")
+		default:
+			time.Sleep(time.Second)
+			cluster := &dbaasv1.DatabaseCluster{}
+			err := r.Get(context.Background(), types.NamespacedName{Name: restore.Spec.DatabaseCluster, Namespace: restore.Namespace}, cluster)
+			if err != nil {
+				return err
+			}
+			if cluster.Status.State == dbaasv1.AppStateReady {
+				return nil
+			}
+		}
+	}
+}
 func (r *DatabaseClusterRestoreReconciler) restorePSMDB(restore *dbaasv1.DatabaseClusterRestore) error {
+	if err := r.ensureClusterIsReady(restore); err != nil {
+		return err
+	}
+
 	psmdbCR := &psmdbv1.PerconaServerMongoDBRestore{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      restore.Name,
