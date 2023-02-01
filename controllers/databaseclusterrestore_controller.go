@@ -76,26 +76,8 @@ func (r *DatabaseClusterRestoreReconciler) Reconcile(ctx context.Context, req ct
 			logger.Error(err, "unable to restore PXC Cluster")
 			return reconcile.Result{}, err
 		}
-		pxcCR := &pxcv1.PerconaXtraDBClusterRestore{}
-		err = r.Get(context.Background(), types.NamespacedName{Name: pxcCR.Name, Namespace: pxcCR.Namespace}, pxcCR)
-		if err != nil {
-			return reconcile.Result{}, err
-		}
-		if err := r.restorePXC(cr); err != nil {
-			logger.Error(err, "unable to restore PXC Cluster")
-			return reconcile.Result{}, err
-		}
-		r.Status().Update(context.Background(), cr)
 	}
 	if cr.Spec.DatabaseType == dbaasv1.PSMDBEngine {
-		psmdb := &psmdbv1.PerconaServerMongoDB{}
-		err = r.Get(ctx, types.NamespacedName{Name: cr.Spec.DatabaseCluster, Namespace: cr.Namespace}, psmdb)
-		if err != nil {
-			return reconcile.Result{}, err
-		}
-		if cr.Spec.BackupSource != nil && cr.Spec.BackupSource.Image == "" {
-			cr.Spec.BackupSource.Image = fmt.Sprintf(psmdbBackupImageTmpl, psmdb.Spec.CRVersion)
-		}
 		if err := r.restorePSMDB(cr); err != nil {
 			logger.Error(err, "unable to restore PXC Cluster")
 			return reconcile.Result{}, err
