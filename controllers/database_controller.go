@@ -439,8 +439,37 @@ func (r *DatabaseReconciler) reconcilePXC(ctx context.Context, req ctrl.Request,
 		// hence we have this piece of the migration of spec.pause field
 		// from PerconaXtraDBCluster object to a DatabaseCluster object.
 
-		_, ok := database.ObjectMeta.Annotations[restartAnnotationKey]
-		if !ok {
+		restores := &dbaasv1.DatabaseClusterRestoreList{}
+
+		if err := r.List(ctx, restores, client.MatchingFields{"spec.databaseCluster": database.Name}); err != nil {
+			return err
+		}
+		jobRunning := false
+		for _, restore := range restores.Items {
+			switch restore.Status.State {
+			case dbaasv1.RestoreState(pxcv1.RestoreNew):
+				jobRunning = true
+				break
+			case dbaasv1.RestoreState(pxcv1.RestoreStarting):
+				jobRunning = true
+				break
+			case dbaasv1.RestoreState(pxcv1.RestoreStopCluster):
+				jobRunning = true
+				break
+			case dbaasv1.RestoreState(pxcv1.RestoreRestore):
+				jobRunning = true
+				break
+			case dbaasv1.RestoreState(pxcv1.RestoreStartCluster):
+				jobRunning = true
+				break
+			case dbaasv1.RestoreState(pxcv1.RestorePITR):
+				jobRunning = true
+				break
+			default:
+				jobRunning = false
+			}
+		}
+		if jobRunning {
 			database.Spec.Pause = current.Spec.Pause
 		}
 	}

@@ -60,6 +60,7 @@ type DatabaseClusterRestoreReconciler struct {
 func (r *DatabaseClusterRestoreReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	logger := log.FromContext(ctx)
 	logger.Info("reconciling", "request", req)
+	time.Sleep(time.Second)
 
 	cr := &dbaasv1.DatabaseClusterRestore{}
 	err := r.Get(ctx, req.NamespacedName, cr)
@@ -96,7 +97,6 @@ func (r *DatabaseClusterRestoreReconciler) ensureClusterIsReady(restore *dbaasv1
 		case <-timeoutCtx.Done():
 			return errors.New("wait timeout exceeded")
 		default:
-			time.Sleep(time.Second)
 			cluster := &dbaasv1.DatabaseCluster{}
 			err := r.Get(context.Background(), types.NamespacedName{Name: restore.Spec.DatabaseCluster, Namespace: restore.Namespace}, cluster)
 			if err != nil {
@@ -285,6 +285,12 @@ func (r *DatabaseClusterRestoreReconciler) SetupWithManager(mgr ctrl.Manager) er
 		}
 	}
 	if err := r.addPSMDBToScheme(r.Scheme); err != nil {
+		return err
+	}
+	if err := mgr.GetFieldIndexer().IndexField(context.TODO(), &dbaasv1.DatabaseClusterRestore{}, "spec.databaseCluster", func(rawObj client.Object) []string {
+		res := rawObj.(*dbaasv1.DatabaseClusterRestore)
+		return []string{res.Spec.DatabaseCluster}
+	}); err != nil {
 		return err
 	}
 	return controller.Complete(r)
