@@ -13,6 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package main ...
 package main
 
 import (
@@ -72,7 +73,6 @@ func main() {
 		setupLog.Error(errors.New("failed to get namespace"), fmt.Sprintf("%s must be set", WatchNamespaceEnvVar))
 
 		os.Exit(1)
-
 	}
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{

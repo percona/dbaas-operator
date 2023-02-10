@@ -13,6 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package controllers has all
 package controllers
 
 import (
@@ -25,7 +26,6 @@ import (
 	"github.com/AlekSi/pointer"
 	goversion "github.com/hashicorp/go-version"
 	psmdbv1 "github.com/percona/percona-server-mongodb-operator/pkg/apis/psmdb/v1"
-
 	pxcv1 "github.com/percona/percona-xtradb-cluster-operator/pkg/apis/pxc/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -128,6 +128,7 @@ func (r *DatabaseReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	}
 	return reconcile.Result{RequeueAfter: 5 * time.Second}, nil
 }
+
 func (r *DatabaseReconciler) getClusterType(ctx context.Context) (ClusterType, error) {
 	clusterType := ClusterTypeMinikube
 	unstructuredResource := &unstructured.Unstructured{}
@@ -153,8 +154,8 @@ func (r *DatabaseReconciler) getClusterType(ctx context.Context) (ClusterType, e
 		}
 	}
 	return clusterType, nil
-
 }
+
 func (r *DatabaseReconciler) reconcilePSMDB(ctx context.Context, req ctrl.Request, database *dbaasv1.DatabaseCluster) error {
 	maxUnavailable := intstr.FromInt(1)
 	version, err := r.getOperatorVersion(ctx, types.NamespacedName{
@@ -378,11 +379,9 @@ func (r *DatabaseReconciler) reconcilePSMDB(ctx context.Context, req ctrl.Reques
 					CompressionType:  v.CompressionType,
 					CompressionLevel: v.CompressionLevel,
 				})
-
 			}
 			psmdb.Spec.Backup.Storages = storages
 			psmdb.Spec.Backup.Tasks = tasks
-
 		}
 
 		return nil
@@ -405,6 +404,7 @@ func (r *DatabaseReconciler) reconcilePSMDB(ctx context.Context, req ctrl.Reques
 	}
 	return nil
 }
+
 func (r *DatabaseReconciler) reconcilePXC(ctx context.Context, req ctrl.Request, database *dbaasv1.DatabaseCluster) error {
 	version, err := r.getOperatorVersion(ctx, types.NamespacedName{
 		Namespace: req.NamespacedName.Namespace,
@@ -426,7 +426,6 @@ func (r *DatabaseReconciler) reconcilePXC(ctx context.Context, req ctrl.Request,
 	current := &pxcv1.PerconaXtraDBCluster{}
 	err = r.Get(ctx, types.NamespacedName{Name: database.Name, Namespace: database.Namespace}, current)
 	if err != nil {
-
 		if err = client.IgnoreNotFound(err); err != nil {
 			return err
 		}
@@ -449,22 +448,16 @@ func (r *DatabaseReconciler) reconcilePXC(ctx context.Context, req ctrl.Request,
 			switch restore.Status.State {
 			case dbaasv1.RestoreState(pxcv1.RestoreNew):
 				jobRunning = true
-				break
 			case dbaasv1.RestoreState(pxcv1.RestoreStarting):
 				jobRunning = true
-				break
 			case dbaasv1.RestoreState(pxcv1.RestoreStopCluster):
 				jobRunning = true
-				break
 			case dbaasv1.RestoreState(pxcv1.RestoreRestore):
 				jobRunning = true
-				break
 			case dbaasv1.RestoreState(pxcv1.RestoreStartCluster):
 				jobRunning = true
-				break
 			case dbaasv1.RestoreState(pxcv1.RestorePITR):
 				jobRunning = true
-				break
 			default:
 				jobRunning = false
 			}
@@ -529,7 +522,6 @@ func (r *DatabaseReconciler) reconcilePXC(ctx context.Context, req ctrl.Request,
 		if database.Spec.LoadBalancer.Type == "haproxy" {
 			if database.Spec.LoadBalancer.Image == "" {
 				database.Spec.LoadBalancer.Image = fmt.Sprintf(haProxyTemplate, version.String())
-
 			}
 			pxc.Spec.HAProxy = &pxcv1.HAProxySpec{
 				ReplicasServiceEnabled: pointer.ToBool(true),
@@ -627,11 +619,9 @@ func (r *DatabaseReconciler) reconcilePXC(ctx context.Context, req ctrl.Request,
 					Keep:        v.Keep,
 					StorageName: v.StorageName,
 				})
-
 			}
 			pxc.Spec.Backup.Storages = storages
 			pxc.Spec.Backup.Schedule = schedules
-
 		}
 		return nil
 	})
@@ -648,6 +638,7 @@ func (r *DatabaseReconciler) reconcilePXC(ctx context.Context, req ctrl.Request,
 	}
 	return nil
 }
+
 func (r *DatabaseReconciler) getOperatorVersion(ctx context.Context, name types.NamespacedName) (*Version, error) {
 	unstructuredResource := &unstructured.Unstructured{}
 	unstructuredResource.SetGroupVersionKind(schema.GroupVersionKind{
@@ -667,6 +658,7 @@ func (r *DatabaseReconciler) getOperatorVersion(ctx context.Context, name types.
 	version := strings.Split(deployment.Spec.Template.Spec.Containers[0].Image, ":")[1]
 	return NewVersion(version)
 }
+
 func (r *DatabaseReconciler) addPXCKnownTypes(scheme *runtime.Scheme) error {
 	version, err := r.getOperatorVersion(context.Background(), types.NamespacedName{
 		Name:      pxcDeploymentName,
@@ -687,6 +679,7 @@ func (r *DatabaseReconciler) addPXCKnownTypes(scheme *runtime.Scheme) error {
 	metav1.AddToGroupVersion(scheme, pxcSchemeGroupVersion)
 	return nil
 }
+
 func (r *DatabaseReconciler) addPSMDBKnownTypes(scheme *runtime.Scheme) error {
 	version, err := r.getOperatorVersion(context.Background(), types.NamespacedName{
 		Name:      psmdbDeploymentName,
@@ -707,10 +700,12 @@ func (r *DatabaseReconciler) addPSMDBKnownTypes(scheme *runtime.Scheme) error {
 	metav1.AddToGroupVersion(scheme, psmdbSchemeGroupVersion)
 	return nil
 }
+
 func (r *DatabaseReconciler) addPSMDBToScheme(scheme *runtime.Scheme) error {
 	builder := runtime.NewSchemeBuilder(r.addPSMDBKnownTypes)
 	return builder.AddToScheme(scheme)
 }
+
 func (r *DatabaseReconciler) addPXCToScheme(scheme *runtime.Scheme) error {
 	builder := runtime.NewSchemeBuilder(r.addPXCKnownTypes)
 	return builder.AddToScheme(scheme)

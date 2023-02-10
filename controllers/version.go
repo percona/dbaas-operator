@@ -18,15 +18,19 @@ func NewVersion(v string) (*Version, error) {
 	}
 	return &Version{version: version}, nil
 }
+
 func (v *Version) String() string {
 	return v.version.String()
 }
+
 func (v *Version) ToCRVersion() string {
 	return strings.Replace(v.String(), "v", "", -1)
 }
+
 func (v *Version) ToSemver() string {
 	return fmt.Sprintf("v%s", v.String())
 }
+
 func (v *Version) ToAPIVersion(apiRoot string) string {
 	ver, _ := goversion.NewVersion("v1.12.0")
 	if v.version.GreaterThan(ver) {

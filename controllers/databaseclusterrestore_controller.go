@@ -20,6 +20,9 @@ import (
 	"fmt"
 	"time"
 
+	psmdbv1 "github.com/percona/percona-server-mongodb-operator/pkg/apis/psmdb/v1"
+	pxcv1 "github.com/percona/percona-xtradb-cluster-operator/pkg/apis/pxc/v1"
+	"github.com/pkg/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -32,10 +35,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	dbaasv1 "github.com/percona/dbaas-operator/api/v1"
-
-	psmdbv1 "github.com/percona/percona-server-mongodb-operator/pkg/apis/psmdb/v1"
-	pxcv1 "github.com/percona/percona-xtradb-cluster-operator/pkg/apis/pxc/v1"
-	"github.com/pkg/errors"
 )
 
 const (
@@ -92,6 +91,7 @@ func (r *DatabaseClusterRestoreReconciler) Reconcile(ctx context.Context, req ct
 
 	return ctrl.Result{}, nil
 }
+
 func (r *DatabaseClusterRestoreReconciler) ensureClusterIsReady(restore *dbaasv1.DatabaseClusterRestore) error {
 	timeoutCtx, cancel := context.WithTimeout(context.Background(), 15*time.Minute)
 	defer cancel()
@@ -111,6 +111,7 @@ func (r *DatabaseClusterRestoreReconciler) ensureClusterIsReady(restore *dbaasv1
 		}
 	}
 }
+
 func (r *DatabaseClusterRestoreReconciler) restorePSMDB(restore *dbaasv1.DatabaseClusterRestore) error {
 	if err := r.ensureClusterIsReady(restore); err != nil {
 		return err
@@ -173,6 +174,7 @@ func (r *DatabaseClusterRestoreReconciler) restorePSMDB(restore *dbaasv1.Databas
 	restore.Status.Message = psmdbCR.Status.Error
 	return r.Status().Update(context.Background(), restore)
 }
+
 func (r *DatabaseClusterRestoreReconciler) restorePXC(restore *dbaasv1.DatabaseClusterRestore) error {
 	pxcCR := &pxcv1.PerconaXtraDBClusterRestore{
 		ObjectMeta: metav1.ObjectMeta{
@@ -243,6 +245,7 @@ func (r *DatabaseClusterRestoreReconciler) addPXCKnownTypes(scheme *runtime.Sche
 	metav1.AddToGroupVersion(scheme, pxcSchemeGroupVersion)
 	return nil
 }
+
 func (r *DatabaseClusterRestoreReconciler) addPSMDBKnownTypes(scheme *runtime.Scheme) error {
 	pxcSchemeGroupVersion := schema.GroupVersion{Group: "psmdb.percona.com", Version: "v1"}
 	scheme.AddKnownTypes(pxcSchemeGroupVersion,
@@ -257,6 +260,7 @@ func (r *DatabaseClusterRestoreReconciler) addPXCToScheme(scheme *runtime.Scheme
 	builder := runtime.NewSchemeBuilder(r.addPXCKnownTypes)
 	return builder.AddToScheme(scheme)
 }
+
 func (r *DatabaseClusterRestoreReconciler) addPSMDBToScheme(scheme *runtime.Scheme) error {
 	builder := runtime.NewSchemeBuilder(r.addPSMDBKnownTypes)
 	return builder.AddToScheme(scheme)
