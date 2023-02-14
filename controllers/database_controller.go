@@ -84,10 +84,7 @@ var defaultPXCSpec = pxcv1.PerconaXtraDBClusterSpec{
 				TopologyKey: pointer.ToString(pxcv1.AffinityTopologyKeyOff),
 			},
 			PodDisruptionBudget: &pxcv1.PodDisruptionBudgetSpec{
-				MaxUnavailable: &intstr.IntOrString{
-					Type:   intstr.Int,
-					IntVal: 1,
-				},
+				MaxUnavailable: &maxUnavailable,
 			},
 		},
 	},
