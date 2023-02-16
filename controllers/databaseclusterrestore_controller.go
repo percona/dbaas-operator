@@ -17,7 +17,6 @@ package controllers
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	psmdbv1 "github.com/percona/percona-server-mongodb-operator/pkg/apis/psmdb/v1"
@@ -280,18 +279,15 @@ func (r *DatabaseClusterRestoreReconciler) SetupWithManager(mgr ctrl.Manager) er
 	controller := ctrl.NewControllerManagedBy(mgr).
 		For(&dbaasv1.DatabaseClusterRestore{})
 	err := r.Get(context.Background(), types.NamespacedName{Name: pxcRestoreCRDName}, unstructuredResource)
-	fmt.Println(unstructuredResource, err)
 	if err == nil {
 		if err := r.addPXCToScheme(r.Scheme); err == nil {
 			controller.Owns(&pxcv1.PerconaXtraDBClusterRestore{})
-			fmt.Println("Registered PXC")
 		}
 	}
 	err = r.Get(context.Background(), types.NamespacedName{Name: psmdbRestoreCRDName}, unstructuredResource)
 	if err == nil {
 		if err := r.addPSMDBToScheme(r.Scheme); err == nil {
 			controller.Owns(&psmdbv1.PerconaServerMongoDBRestore{})
-			fmt.Println("Registered psmdb")
 		}
 	}
 	if err := r.addPSMDBToScheme(r.Scheme); err != nil {

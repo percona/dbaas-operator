@@ -813,14 +813,12 @@ func (r *DatabaseReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	if err == nil {
 		if err := r.addPXCToScheme(r.Scheme); err == nil {
 			controller.Owns(&pxcv1.PerconaXtraDBCluster{})
-			fmt.Println("Registered PXC")
 		}
 	}
 	err = r.Get(context.Background(), types.NamespacedName{Name: psmdbCRDName}, unstructuredResource)
 	if err == nil {
 		if err := r.addPSMDBToScheme(r.Scheme); err == nil {
 			controller.Owns(&psmdbv1.PerconaServerMongoDB{})
-			fmt.Println("Registered psmdb")
 		}
 	}
 	return controller.Complete(r)
