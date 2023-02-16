@@ -48,10 +48,13 @@ import (
 	dbaasv1 "github.com/percona/dbaas-operator/api/v1"
 )
 
+// ClusterType used to understand the underlying platform of k8s cluster
 type ClusterType string
 
 const (
+	// PerconaXtraDBClusterKind represents pxc kind
 	PerconaXtraDBClusterKind = "PerconaXtraDBCluster"
+	// PerconaServerMongoDBKind represents psmdb kind
 	PerconaServerMongoDBKind = "PerconaServerMongoDB"
 
 	pxcDeploymentName    = "percona-xtradb-cluster-operator"
@@ -59,21 +62,23 @@ const (
 	pxcBackupImageTmpl   = "percona/percona-xtradb-cluster-operator:%s-pxc8.0-backup"
 	psmdbBackupImageTmpl = "percona/percona-server-mongodb-operator:%s-backup"
 
-	psmdbCRDName                            = "perconaservermongodbs.psmdb.percona.com"
-	pxcCRDName                              = "perconaxtradbclusters.pxc.percona.com"
-	pxcAPIGroup                             = "pxc.percona.com"
-	psmdbAPIGroup                           = "psmdb.percona.com"
-	haProxyTemplate                         = "percona/percona-xtradb-cluster-operator:%s-haproxy"
-	restartAnnotationKey                    = "dbaas.percona.com/restart"
-	dbTemplateKindAnnotationKey             = "dbaas.percona.com/dbtemplate-kind"
-	dbTemplateNameAnnotationKey             = "dbaas.percona.com/dbtemplate-name"
-	ClusterTypeEKS              ClusterType = "eks"
-	ClusterTypeMinikube         ClusterType = "minikube"
+	psmdbCRDName                = "perconaservermongodbs.psmdb.percona.com"
+	pxcCRDName                  = "perconaxtradbclusters.pxc.percona.com"
+	pxcAPIGroup                 = "pxc.percona.com"
+	psmdbAPIGroup               = "psmdb.percona.com"
+	haProxyTemplate             = "percona/percona-xtradb-cluster-operator:%s-haproxy"
+	restartAnnotationKey        = "dbaas.percona.com/restart"
+	dbTemplateKindAnnotationKey = "dbaas.percona.com/dbtemplate-kind"
+	dbTemplateNameAnnotationKey = "dbaas.percona.com/dbtemplate-name"
+	// ClusterTypeEKS represents EKS cluster type
+	ClusterTypeEKS ClusterType = "eks"
+	// ClusterTypeMinikube represents minikube cluster type
+	ClusterTypeMinikube ClusterType = "minikube"
 )
 
 var defaultPXCSpec = pxcv1.PerconaXtraDBClusterSpec{
 	UpdateStrategy: pxcv1.SmartUpdateStatefulSetStrategyType,
-	UpgradeOptions: pxcv1.UpgradeOptions{ // TODO: Get rid of hardcode
+	UpgradeOptions: pxcv1.UpgradeOptions{
 		Apply:    "8.0-recommended",
 		Schedule: "0 4 * * *",
 	},
@@ -117,7 +122,7 @@ var (
 	maxUnavailable   = intstr.FromInt(1)
 	defaultPSMDBSpec = psmdbv1.PerconaServerMongoDBSpec{
 		UpdateStrategy: psmdbv1.SmartUpdateStatefulSetStrategyType,
-		UpgradeOptions: psmdbv1.UpgradeOptions{ // TODO: Get rid of hardcode
+		UpgradeOptions: psmdbv1.UpgradeOptions{
 			Apply:    "disabled",
 			Schedule: "0 4 * * *",
 		},
@@ -170,7 +175,6 @@ var (
 		Replsets: []*psmdbv1.ReplsetSpec{
 			{
 				Name: "rs0",
-				// TODO: Add pod disruption budget
 				MultiAZ: psmdbv1.MultiAZ{
 					PodDisruptionBudget: &psmdbv1.PodDisruptionBudgetSpec{
 						MaxUnavailable: &maxUnavailable,
@@ -204,7 +208,6 @@ var (
 						TopologyKey: pointer.ToString(psmdbv1.AffinityOff),
 					},
 				},
-				// TODO: Add traffic policy
 			},
 		},
 	}
@@ -378,7 +381,6 @@ func (r *DatabaseReconciler) reconcilePSMDB(ctx context.Context, req ctrl.Reques
 				},
 			},
 		}
-		// TODO: Add pod disruption budget
 		psmdb.Spec.Replsets[0].MultiAZ.Resources = corev1.ResourceRequirements{
 			Limits: corev1.ResourceList{
 				corev1.ResourceCPU:    database.Spec.DBInstance.CPU,
@@ -404,7 +406,6 @@ func (r *DatabaseReconciler) reconcilePSMDB(ctx context.Context, req ctrl.Reques
 		}
 		psmdb.Spec.Sharding.Mongos.Configuration = psmdbv1.MongoConfiguration(database.Spec.LoadBalancer.Configuration)
 		psmdb.Spec.Sharding.Mongos.MultiAZ.Resources = database.Spec.LoadBalancer.Resources
-		// TODO: Add traffic policy
 		if database.Spec.ClusterSize == 1 {
 			psmdb.Spec.Sharding.Enabled = false
 			psmdb.Spec.Replsets[0].Expose.Enabled = true
@@ -578,6 +579,12 @@ func (r *DatabaseReconciler) reconcilePXC(ctx context.Context, req ctrl.Request,
 
 		dbTemplateKind, hasTemplateKind := database.ObjectMeta.Annotations[dbTemplateKindAnnotationKey]
 		dbTemplateName, hasTemplateName := database.ObjectMeta.Annotations[dbTemplateNameAnnotationKey]
+		if hasTemplateKind && !hasTemplateName {
+			return errors.Errorf("missing %s annotation", dbTemplateNameAnnotationKey)
+		}
+		if !hasTemplateKind && hasTemplateName {
+			return errors.Errorf("missing %s annotation", dbTemplateKindAnnotationKey)
+		}
 		if hasTemplateKind && hasTemplateName {
 			err := r.applyTemplate(ctx, pxc, dbTemplateKind, types.NamespacedName{
 				Namespace: req.NamespacedName.Namespace,
@@ -586,10 +593,6 @@ func (r *DatabaseReconciler) reconcilePXC(ctx context.Context, req ctrl.Request,
 			if err != nil {
 				return err
 			}
-		} else if hasTemplateKind {
-			return errors.Errorf("missing %s annotation", dbTemplateNameAnnotationKey)
-		} else if hasTemplateName {
-			return errors.Errorf("missing %s annotation", dbTemplateKindAnnotationKey)
 		}
 
 		pxc.Spec.CRVersion = version.ToCRVersion()
@@ -752,7 +755,7 @@ func (r *DatabaseReconciler) addPXCKnownTypes(scheme *runtime.Scheme) error {
 	if err != nil {
 		return err
 	}
-	pxcSchemeGroupVersion := schema.GroupVersion{Group: "pxc.percona.com", Version: strings.Replace("v"+version.String(), ".", "-", -1)}
+	pxcSchemeGroupVersion := schema.GroupVersion{Group: "pxc.percona.com", Version: strings.ReplaceAll("v"+version.String(), ".", "-")}
 	ver, _ := goversion.NewVersion("v1.11.0")
 	if version.version.GreaterThan(ver) {
 		pxcSchemeGroupVersion = schema.GroupVersion{Group: "pxc.percona.com", Version: "v1"}
@@ -773,7 +776,7 @@ func (r *DatabaseReconciler) addPSMDBKnownTypes(scheme *runtime.Scheme) error {
 	if err != nil {
 		return err
 	}
-	psmdbSchemeGroupVersion := schema.GroupVersion{Group: "psmdb.percona.com", Version: strings.Replace("v"+version.String(), ".", "-", -1)}
+	psmdbSchemeGroupVersion := schema.GroupVersion{Group: "psmdb.percona.com", Version: strings.ReplaceAll("v"+version.String(), ".", "-")}
 	ver, _ := goversion.NewVersion("v1.12.0")
 	if version.version.GreaterThan(ver) {
 		psmdbSchemeGroupVersion = schema.GroupVersion{Group: "psmdb.percona.com", Version: "v1"}

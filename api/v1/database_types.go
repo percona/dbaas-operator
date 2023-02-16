@@ -23,20 +23,30 @@ import (
 )
 
 const (
-	PXCEngine   EngineType = "pxc"
+	// PXCEngine represents engine type for PXC clusters
+	PXCEngine EngineType = "pxc"
+	// PSMDBEngine represents engine type for PSMDB clusters
 	PSMDBEngine EngineType = "psmdb"
-
-	LoadBalancerMongos   LoadBalancerType = "mongos"
-	LoadBalancerHAProxy  LoadBalancerType = "haproxy"
+	// LoadBalancerMongos represents mongos load balancer
+	LoadBalancerMongos LoadBalancerType = "mongos"
+	// LoadBalancerHAProxy represents haproxy load balancer
+	LoadBalancerHAProxy LoadBalancerType = "haproxy"
+	// LoadBalancerProxySQL represents proxySQL load balancer
 	LoadBalancerProxySQL LoadBalancerType = "proxysql"
-
-	AppStateUnknown  AppState = "unknown"
-	AppStateInit     AppState = "initializing"
-	AppStatePaused   AppState = "paused"
-	AppStatePausing  AppState = "pausing"
+	// AppStateUnknown is an unknown state
+	AppStateUnknown AppState = "unknown"
+	// AppStateInit is a initializing state
+	AppStateInit AppState = "initializing"
+	// AppStatePaused is a paused state
+	AppStatePaused AppState = "paused"
+	// AppStatePausing is a pausing state
+	AppStatePausing AppState = "pausing"
+	// AppStateStoppping is a stopping state
 	AppStateStopping AppState = "stopping"
-	AppStateReady    AppState = "ready"
-	AppStateError    AppState = "error"
+	// AppStateReady is a ready state
+	AppStateReady AppState = "ready"
+	// AppStateError is an error state
+	AppStateError AppState = "error"
 )
 
 type (
@@ -45,7 +55,8 @@ type (
 	//
 	// Once PG support will be added, it can be pg-bouncer or something else.
 	LoadBalancerType string
-	AppState         string
+	// AppState is used to represent cluster's state
+	AppState string
 	// DatabaseSpec defines the desired state of Database
 	DatabaseSpec struct {
 		// Database type stands for supported databases by the PMM API
@@ -56,17 +67,22 @@ type (
 		DatabaseImage string `json:"databaseImage"`
 		// DatabaseConfig contains a config settings for the specified database
 		DatabaseConfig string `json:"databaseConfig"`
-		SecretsName    string `json:"secretsName,omitempty"`
-		Pause          bool   `json:"pause,omitempty"`
+		// SecretsName contains name of a secrets file for a database cluster
+		SecretsName string `json:"secretsName,omitempty"`
+		// Pause represents is a cluster paused or not
+		Pause bool `json:"pause,omitempty"`
 		// ClusterSize is amount of nodes that required for the cluster.
 		// A database starts in cluster mode if clusterSize >= 3.
 		ClusterSize int32 `json:"clusterSize"`
 		// LoadBalancer contains a load balancer settings. For PXC it's haproxy
 		// or proxysql. For PSMDB it's mongos.
 		LoadBalancer LoadBalancerSpec `json:"loadBalancer,omitempty"`
-		Monitoring   MonitoringSpec   `json:"monitoring,omitempty"`
-		DBInstance   DBInstanceSpec   `json:"dbInstance"`
-		Backup       *BackupSpec      `json:"backup,omitempty"`
+		// Monitoring contains a monitoring settings
+		Monitoring MonitoringSpec `json:"monitoring,omitempty"`
+		// DBInstance represents resource requests for a database cluster
+		DBInstance DBInstanceSpec `json:"dbInstance"`
+		// Backup contains backup settings
+		Backup *BackupSpec `json:"backup,omitempty"`
 	}
 	// LoadBalancer contains a load balancer settings. For PXC it's haproxy
 	// or proxysql. For PSMDB it's mongos.

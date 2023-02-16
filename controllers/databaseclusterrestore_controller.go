@@ -59,6 +59,9 @@ type DatabaseClusterRestoreReconciler struct {
 // +kubebuilder:rbac:groups=pxc.percona.com,resources=perconaxtradbclusterrestores,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=psmdb.percona.com,resources=perconaservermongodbrestores,verbs=get;list;watch;create;update;patch;delete
 
+// Reconcile is part of the main kubernetes reconciliation loop which aims to
+// move the current state of the cluster closer to the desired state.
+// For more details, check Reconcile and its Result here:
 func (r *DatabaseClusterRestoreReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	logger := log.FromContext(ctx)
 	logger.Info("reconciling", "request", req)
@@ -77,13 +80,13 @@ func (r *DatabaseClusterRestoreReconciler) Reconcile(ctx context.Context, req ct
 	}
 
 	if cr.Spec.DatabaseType == dbaasv1.PXCEngine {
-		if err := r.restorePXC(cr); err != nil {
+		if err := r.restorePXC(cr); err != nil { //nolint: contextcheck
 			logger.Error(err, "unable to restore PXC Cluster")
 			return reconcile.Result{}, err
 		}
 	}
 	if cr.Spec.DatabaseType == dbaasv1.PSMDBEngine {
-		if err := r.restorePSMDB(cr); err != nil {
+		if err := r.restorePSMDB(cr); err != nil { //nolint: contextcheck
 			logger.Error(err, "unable to restore PXC Cluster")
 			return reconcile.Result{}, err
 		}
@@ -92,7 +95,7 @@ func (r *DatabaseClusterRestoreReconciler) Reconcile(ctx context.Context, req ct
 	return ctrl.Result{}, nil
 }
 
-func (r *DatabaseClusterRestoreReconciler) ensureClusterIsReady(restore *dbaasv1.DatabaseClusterRestore) error {
+func (r *DatabaseClusterRestoreReconciler) ensureClusterIsReady(restore *dbaasv1.DatabaseClusterRestore) error { //nolint: contextcheck
 	timeoutCtx, cancel := context.WithTimeout(context.Background(), 15*time.Minute)
 	defer cancel()
 	for {

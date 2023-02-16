@@ -54,6 +54,7 @@ func TestGetOperatorVersion(t *testing.T) {
 }
 
 func TestMergeMapSimple(t *testing.T) {
+	t.Parallel()
 	testDst := map[string]interface{}{
 		"a": "apple",
 		"b": "banana",
@@ -73,6 +74,7 @@ func TestMergeMapSimple(t *testing.T) {
 }
 
 func TestMergeMapNested(t *testing.T) {
+	t.Parallel()
 	testDst := map[string]interface{}{
 		"a": "apple",
 		"b": "banana",
@@ -111,7 +113,9 @@ func TestMergeMapNested(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, testDst, expDst)
 }
+
 func TestMergeMapError(t *testing.T) {
+	t.Parallel()
 	testDst := map[string]interface{}{
 		"dry": map[string]interface{}{
 			"vegetables": map[string]interface{}{

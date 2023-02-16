@@ -77,19 +77,20 @@ func (r *DatabaseEngineReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		return ctrl.Result{}, err
 	}
 
+	dbEngine.Status.State = dbaasv1.DBEngineStateNotInstalled
+	dbEngine.Status.Version = ""
 	ready, version, err := r.getOperatorStatus(ctx, req.NamespacedName)
-	if err != nil && apierrors.IsNotFound(err) {
-		dbEngine.Status.State = dbaasv1.DBEngineStateNotInstalled
-		dbEngine.Status.Version = ""
-	} else if err != nil {
-		return ctrl.Result{}, err
-	} else {
-		dbEngine.Status.Version = version
-		if ready {
-			dbEngine.Status.State = dbaasv1.DBEngineStateInstalled
-		} else {
-			dbEngine.Status.State = dbaasv1.DBEngineStateInstalling
+	if err != nil {
+		if !apierrors.IsNotFound(err) {
+			return ctrl.Result{}, err
 		}
+	}
+	if version != "" {
+		dbEngine.Status.Version = version
+		dbEngine.Status.State = dbaasv1.DBEngineStateInstalling
+	}
+	if ready {
+		dbEngine.Status.State = dbaasv1.DBEngineStateInstalled
 	}
 
 	if err := r.Status().Update(ctx, dbEngine); err != nil {
