@@ -41,7 +41,7 @@ var operatorEngine = map[string]dbaasv1.EngineType{
 	psmdbDeploymentName: dbaasv1.PSMDBEngine,
 }
 
-// DatabaseEngineReconciler reconciles a DatabaseEngine object
+// DatabaseEngineReconciler reconciles a DatabaseEngine object.
 type DatabaseEngineReconciler struct {
 	client.Client
 	Scheme *runtime.Scheme

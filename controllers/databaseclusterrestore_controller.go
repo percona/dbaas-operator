@@ -46,7 +46,7 @@ const (
 	clusterReadyTimeout = 10 * time.Minute
 )
 
-// DatabaseClusterRestoreReconciler reconciles a DatabaseClusterRestore object
+// DatabaseClusterRestoreReconciler reconciles a DatabaseClusterRestore object.
 type DatabaseClusterRestoreReconciler struct {
 	client.Client
 	Scheme *runtime.Scheme
@@ -60,7 +60,6 @@ type DatabaseClusterRestoreReconciler struct {
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
-// For more details, check Reconcile and its Result here:
 func (r *DatabaseClusterRestoreReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	logger := log.FromContext(ctx)
 	logger.Info("reconciling", "request", req)
@@ -79,13 +78,13 @@ func (r *DatabaseClusterRestoreReconciler) Reconcile(ctx context.Context, req ct
 	}
 
 	if cr.Spec.DatabaseType == dbaasv1.PXCEngine {
-		if err := r.restorePXC(cr); err != nil { //nolint: contextcheck
+		if err := r.restorePXC(cr); err != nil { //nolint:contextcheck
 			logger.Error(err, "unable to restore PXC Cluster")
 			return reconcile.Result{}, err
 		}
 	}
 	if cr.Spec.DatabaseType == dbaasv1.PSMDBEngine {
-		if err := r.restorePSMDB(cr); err != nil { //nolint: contextcheck
+		if err := r.restorePSMDB(cr); err != nil { //nolint:contextcheck
 			logger.Error(err, "unable to restore PXC Cluster")
 			return reconcile.Result{}, err
 		}
@@ -94,7 +93,7 @@ func (r *DatabaseClusterRestoreReconciler) Reconcile(ctx context.Context, req ct
 	return ctrl.Result{}, nil
 }
 
-func (r *DatabaseClusterRestoreReconciler) ensureClusterIsReady(restore *dbaasv1.DatabaseClusterRestore) error { //nolint: contextcheck
+func (r *DatabaseClusterRestoreReconciler) ensureClusterIsReady(restore *dbaasv1.DatabaseClusterRestore) error {
 	timeoutCtx, cancel := context.WithTimeout(context.Background(), 15*time.Minute)
 	defer cancel()
 	for {
@@ -294,7 +293,7 @@ func (r *DatabaseClusterRestoreReconciler) SetupWithManager(mgr ctrl.Manager) er
 		return err
 	}
 	if err := mgr.GetFieldIndexer().IndexField(context.TODO(), &dbaasv1.DatabaseClusterRestore{}, "spec.databaseCluster", func(rawObj client.Object) []string {
-		res := rawObj.(*dbaasv1.DatabaseClusterRestore)
+		res := rawObj.(*dbaasv1.DatabaseClusterRestore) //nolint:forcetypeassert
 		return []string{res.Spec.DatabaseCluster}
 	}); err != nil {
 		return err

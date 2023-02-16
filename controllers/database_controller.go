@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package controllers has all
+// Package controllers contains a set of controllers for DBaaS
 package controllers
 
 import (
@@ -48,13 +48,13 @@ import (
 	dbaasv1 "github.com/percona/dbaas-operator/api/v1"
 )
 
-// ClusterType used to understand the underlying platform of k8s cluster
+// ClusterType used to understand the underlying platform of k8s cluster.
 type ClusterType string
 
 const (
-	// PerconaXtraDBClusterKind represents pxc kind
+	// PerconaXtraDBClusterKind represents pxc kind.
 	PerconaXtraDBClusterKind = "PerconaXtraDBCluster"
-	// PerconaServerMongoDBKind represents psmdb kind
+	// PerconaServerMongoDBKind represents psmdb kind.
 	PerconaServerMongoDBKind = "PerconaServerMongoDB"
 
 	pxcDeploymentName    = "percona-xtradb-cluster-operator"
@@ -70,9 +70,9 @@ const (
 	restartAnnotationKey        = "dbaas.percona.com/restart"
 	dbTemplateKindAnnotationKey = "dbaas.percona.com/dbtemplate-kind"
 	dbTemplateNameAnnotationKey = "dbaas.percona.com/dbtemplate-name"
-	// ClusterTypeEKS represents EKS cluster type
+	// ClusterTypeEKS represents EKS cluster type.
 	ClusterTypeEKS ClusterType = "eks"
-	// ClusterTypeMinikube represents minikube cluster type
+	// ClusterTypeMinikube represents minikube cluster type.
 	ClusterTypeMinikube ClusterType = "minikube"
 )
 
@@ -213,7 +213,7 @@ var (
 	}
 )
 
-// DatabaseReconciler reconciles a Database object
+// DatabaseReconciler reconciles a Database object.
 type DatabaseReconciler struct {
 	client.Client
 	Scheme *runtime.Scheme
@@ -302,7 +302,7 @@ func (r *DatabaseReconciler) getClusterType(ctx context.Context) (ClusterType, e
 	return clusterType, nil
 }
 
-func (r *DatabaseReconciler) reconcilePSMDB(ctx context.Context, req ctrl.Request, database *dbaasv1.DatabaseCluster) error {
+func (r *DatabaseReconciler) reconcilePSMDB(ctx context.Context, req ctrl.Request, database *dbaasv1.DatabaseCluster) error { //nolint:gocognit
 	version, err := r.getOperatorVersion(ctx, types.NamespacedName{
 		Namespace: req.NamespacedName.Namespace,
 		Name:      psmdbDeploymentName,
@@ -347,6 +347,12 @@ func (r *DatabaseReconciler) reconcilePSMDB(ctx context.Context, req ctrl.Reques
 
 		dbTemplateKind, hasTemplateKind := database.ObjectMeta.Annotations[dbTemplateKindAnnotationKey]
 		dbTemplateName, hasTemplateName := database.ObjectMeta.Annotations[dbTemplateNameAnnotationKey]
+		if hasTemplateKind && !hasTemplateName {
+			return errors.Errorf("missing %s annotation", dbTemplateNameAnnotationKey)
+		}
+		if !hasTemplateKind && hasTemplateName {
+			return errors.Errorf("missing %s annotation", dbTemplateKindAnnotationKey)
+		}
 		if hasTemplateKind && hasTemplateName {
 			err := r.applyTemplate(ctx, psmdb, dbTemplateKind, types.NamespacedName{
 				Namespace: req.NamespacedName.Namespace,
@@ -355,10 +361,6 @@ func (r *DatabaseReconciler) reconcilePSMDB(ctx context.Context, req ctrl.Reques
 			if err != nil {
 				return err
 			}
-		} else if hasTemplateKind {
-			return errors.Errorf("missing %s annotation", dbTemplateNameAnnotationKey)
-		} else if hasTemplateName {
-			return errors.Errorf("missing %s annotation", dbTemplateKindAnnotationKey)
 		}
 
 		psmdb.Spec.CRVersion = version.ToCRVersion()
@@ -491,7 +493,7 @@ func (r *DatabaseReconciler) reconcilePSMDB(ctx context.Context, req ctrl.Reques
 	return nil
 }
 
-func (r *DatabaseReconciler) reconcilePXC(ctx context.Context, req ctrl.Request, database *dbaasv1.DatabaseCluster) error {
+func (r *DatabaseReconciler) reconcilePXC(ctx context.Context, req ctrl.Request, database *dbaasv1.DatabaseCluster) error { //nolint:gocognit,gocyclo,cyclop,maintidx
 	version, err := r.getOperatorVersion(ctx, types.NamespacedName{
 		Namespace: req.NamespacedName.Namespace,
 		Name:      pxcDeploymentName,
@@ -829,12 +831,12 @@ func mergeMapInternal(dst map[string]interface{}, src map[string]interface{}, pa
 		if dst[k] != nil && reflect.TypeOf(dst[k]) != reflect.TypeOf(v) {
 			return errors.Errorf("type mismatch for %s.%s, %T != %T", parent, k, dst[k], v)
 		}
-		switch v.(type) {
+		switch v.(type) { //nolint:gocritic
 		case map[string]interface{}:
-			switch dst[k].(type) {
+			switch dst[k].(type) { //nolint:gocritic
 			case nil:
 				dst[k] = v
-			case map[string]interface{}:
+			case map[string]interface{}: //nolint:forcetypeassert
 				err := mergeMapInternal(dst[k].(map[string]interface{}),
 					v.(map[string]interface{}), fmt.Sprintf("%s.%s", parent, k))
 				if err != nil {
@@ -878,17 +880,18 @@ func (r *DatabaseReconciler) applyTemplate(
 	if err != nil {
 		return err
 	}
-
+	//nolint:forcetypeassert
 	err = mergeMap(unstructuredDB.Object["spec"].(map[string]interface{}),
 		unstructuredTemplate.Object["spec"].(map[string]interface{}))
 	if err != nil {
 		return err
 	}
 
-	if unstructuredTemplate.Object["metadata"].(map[string]interface{})["annotations"] != nil {
-		if unstructuredDB.Object["metadata"].(map[string]interface{})["annotations"] == nil {
-			unstructuredDB.Object["metadata"].(map[string]interface{})["annotations"] = map[string]interface{}{}
+	if unstructuredTemplate.Object["metadata"].(map[string]interface{})["annotations"] != nil { //nolint:forcetypeassert
+		if unstructuredDB.Object["metadata"].(map[string]interface{})["annotations"] == nil { //nolint:forcetypeassert
+			unstructuredDB.Object["metadata"].(map[string]interface{})["annotations"] = map[string]interface{}{} //nolint:forcetypeassert
 		}
+		//nolint:forcetypeassert
 		err = mergeMap(unstructuredDB.Object["metadata"].(map[string]interface{})["annotations"].(map[string]interface{}),
 			unstructuredTemplate.Object["metadata"].(map[string]interface{})["annotations"].(map[string]interface{}))
 		if err != nil {
@@ -896,10 +899,11 @@ func (r *DatabaseReconciler) applyTemplate(
 		}
 	}
 
-	if unstructuredTemplate.Object["metadata"].(map[string]interface{})["labels"] != nil {
-		if unstructuredDB.Object["metadata"].(map[string]interface{})["labels"] == nil {
-			unstructuredDB.Object["metadata"].(map[string]interface{})["labels"] = map[string]interface{}{}
+	if unstructuredTemplate.Object["metadata"].(map[string]interface{})["labels"] != nil { //nolint:forcetypeassert
+		if unstructuredDB.Object["metadata"].(map[string]interface{})["labels"] == nil { //nolint:forcetypeassert
+			unstructuredDB.Object["metadata"].(map[string]interface{})["labels"] = map[string]interface{}{} //nolint:forcetypeassert
 		}
+		//nolint:forcetypeassert
 		err = mergeMap(unstructuredDB.Object["metadata"].(map[string]interface{})["labels"].(map[string]interface{}),
 			unstructuredTemplate.Object["metadata"].(map[string]interface{})["labels"].(map[string]interface{}))
 		if err != nil {

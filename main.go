@@ -14,6 +14,8 @@
 // limitations under the License.
 
 // Package main ...
+//
+//nolint:gci
 package main
 
 import (
