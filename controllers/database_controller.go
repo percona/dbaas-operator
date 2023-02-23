@@ -78,6 +78,9 @@ wsrep_provider_options="gcache.size=%s"
 wsrep_trx_fragment_unit='bytes'
 wsrep_trx_fragment_size=3670016
 `
+	pxcMinimalConfigurationTemplate = `[mysqld]
+wsrep_provider_options="gcache.size=%s"
+`
 	haProxyDefaultConfigurationTemplate = `timeout client 28800s
 timeout connect 100500
 timeout server 28800s
@@ -609,7 +612,12 @@ func (r *DatabaseReconciler) reconcilePXC(ctx context.Context, req ctrl.Request,
 		if database.Spec.DBInstance.Memory.CmpInt64(memoryLargeSize) >= 0 {
 			gCacheSize = "9830M"
 		}
+		ver, _ := goversion.NewVersion("v1.11.0")
 		database.Spec.DatabaseConfig = fmt.Sprintf(pxcDefaultConfigurationTemplate, gCacheSize)
+		if version.version.GreaterThan(ver) {
+			database.Spec.DatabaseConfig = fmt.Sprintf(pxcMinimalConfigurationTemplate, gCacheSize)
+		}
+
 	}
 	if database.Spec.LoadBalancer.Type == "haproxy" && database.Spec.LoadBalancer.Configuration == "" {
 		database.Spec.LoadBalancer.Configuration = haProxyDefaultConfigurationTemplate
