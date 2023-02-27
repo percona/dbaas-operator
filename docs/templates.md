@@ -66,6 +66,9 @@ There could be optional annotations (both in DatabaseCluster CR and DatabaseClus
 ### Labels
 
 All the labels from the DatabaseCluster Template are merged to the final DB Cluster CR.
+Moreover, in order for PMM to correctly identify the available templates both the template CR and corresponding CRD must have the following labels set:
+- `dbaas.percona.com/template: "yes"`
+- `dbaas.percona.com/engine: "pxc"` or `dbaas.percona.com/engine: "psmdb"`
 
 ## Examples
 
@@ -85,6 +88,9 @@ kind: CustomResourceDefinition
 metadata:
   creationTimestamp: null
   name: pxctemplateupgradeoptions.dbaas.percona.com
+  labels:
+    dbaas.percona.com/template: "yes"
+    dbaas.percona.com/engine: "pxc"
 spec:
   group: dbaas.percona.com
   names:
@@ -158,6 +164,9 @@ apiVersion: dbaas.percona.com/v1
 kind: PXCTemplateUgradeOptions
 metadata:
   name: disable-automatic-upgrades
+  labels:
+    dbaas.percona.com/template: "yes"
+    dbaas.percona.com/engine: "pxc"
 spec:
   updateStrategy: SmartUpdate
   upgradeOptions:
