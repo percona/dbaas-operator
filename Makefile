@@ -3,7 +3,7 @@
 # To re-generate a bundle for another specific version without changing the standard setup, you can:
 # - use the VERSION as arg of the bundle target (e.g make bundle VERSION=0.0.2)
 # - use environment variables to overwrite this value (e.g export VERSION=0.0.2)
-VERSION ?= 0.1.3
+VERSION ?= 0.1.4
 
 # CHANNELS define the bundle channels used in the bundle.
 # Add a new line here if you would like to change its default config. (E.g CHANNELS = "candidate,fast,stable")
@@ -253,3 +253,10 @@ local-env-up: ## Create a local minikube cluster
 	minikube addons disable storage-provisioner
 	kubectl delete storageclass standard
 	kubectl apply -f ./dev/kubevirt-hostpath-provisioner.yaml
+
+## Location to output deployment manifests
+DEPLOYDIR = ./deploy
+
+.PHONY: $(DEPLOYDIR)/bundle.yaml
+$(DEPLOYDIR)/bundle.yaml: manifests kustomize ## Generate deploy/bundle.yaml
+	$(KUSTOMIZE) build config/default -o $(DEPLOYDIR)/bundle.yaml
