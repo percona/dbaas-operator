@@ -240,8 +240,7 @@ func (r *DatabaseClusterRestoreReconciler) restorePXC(restore *dbaasv1.DatabaseC
 func (r *DatabaseClusterRestoreReconciler) addPXCKnownTypes(scheme *runtime.Scheme) error {
 	pxcSchemeGroupVersion := schema.GroupVersion{Group: "pxc.percona.com", Version: "v1"}
 	scheme.AddKnownTypes(pxcSchemeGroupVersion,
-		&pxcv1.PerconaXtraDBClusterRestore{}, &pxcv1.PerconaXtraDBClusterRestoreList{},
-	)
+		&pxcv1.PerconaXtraDBClusterRestore{}, &pxcv1.PerconaXtraDBClusterRestoreList{})
 
 	metav1.AddToGroupVersion(scheme, pxcSchemeGroupVersion)
 	return nil
@@ -250,8 +249,7 @@ func (r *DatabaseClusterRestoreReconciler) addPXCKnownTypes(scheme *runtime.Sche
 func (r *DatabaseClusterRestoreReconciler) addPSMDBKnownTypes(scheme *runtime.Scheme) error {
 	pxcSchemeGroupVersion := schema.GroupVersion{Group: "psmdb.percona.com", Version: "v1"}
 	scheme.AddKnownTypes(pxcSchemeGroupVersion,
-		&psmdbv1.PerconaServerMongoDBRestore{}, &psmdbv1.PerconaServerMongoDBRestoreList{},
-	)
+		&psmdbv1.PerconaServerMongoDBRestore{}, &psmdbv1.PerconaServerMongoDBRestoreList{})
 
 	metav1.AddToGroupVersion(scheme, pxcSchemeGroupVersion)
 	return nil

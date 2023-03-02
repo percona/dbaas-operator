@@ -80,7 +80,7 @@ func (v *Version) PSMDBBackupImage() (string, error) {
 		if err != nil {
 			return "", err
 		}
-		defer resp.Body.Close() //nolint:errcheck
+		defer resp.Body.Close() //nolint:errcheck,gosec
 		var vr VersionResponse
 		if err := json.NewDecoder(resp.Body).Decode(&vr); err != nil {
 			return "", err

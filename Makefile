@@ -109,6 +109,9 @@ format:
 	bin/gofumpt -l -w .
 	bin/goimports -local github.com/percona/dbaas-operator -l -w .
 	bin/gci write --skip-generated --section "standard,default,prefix(github.com/percona/dbaas-operator)" .
+check:
+	LOG_LEVEL=error bin/golangci-lint run
+	bin/go-sumtype ./...
 
 .PHONY: test
 test: manifests generate fmt vet envtest ## Run tests.

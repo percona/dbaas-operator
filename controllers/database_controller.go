@@ -810,9 +810,9 @@ func (r *DatabaseReconciler) addPXCKnownTypes(scheme *runtime.Scheme) error {
 	if version.version.GreaterThan(ver) {
 		pxcSchemeGroupVersion = schema.GroupVersion{Group: "pxc.percona.com", Version: "v1"}
 	}
+
 	scheme.AddKnownTypes(pxcSchemeGroupVersion,
-		&pxcv1.PerconaXtraDBCluster{}, &pxcv1.PerconaXtraDBClusterList{},
-	)
+		&pxcv1.PerconaXtraDBCluster{}, &pxcv1.PerconaXtraDBClusterList{})
 
 	metav1.AddToGroupVersion(scheme, pxcSchemeGroupVersion)
 	return nil
@@ -832,8 +832,7 @@ func (r *DatabaseReconciler) addPSMDBKnownTypes(scheme *runtime.Scheme) error {
 		psmdbSchemeGroupVersion = schema.GroupVersion{Group: "psmdb.percona.com", Version: "v1"}
 	}
 	scheme.AddKnownTypes(psmdbSchemeGroupVersion,
-		&psmdbv1.PerconaServerMongoDB{}, &psmdbv1.PerconaServerMongoDBList{},
-	)
+		&psmdbv1.PerconaServerMongoDB{}, &psmdbv1.PerconaServerMongoDBList{})
 
 	metav1.AddToGroupVersion(scheme, psmdbSchemeGroupVersion)
 	return nil
@@ -937,7 +936,7 @@ func (r *DatabaseReconciler) applyTemplate(
 
 	if unstructuredTemplate.Object["metadata"].(map[string]interface{})["annotations"] != nil { //nolint:forcetypeassert
 		if unstructuredDB.Object["metadata"].(map[string]interface{})["annotations"] == nil { //nolint:forcetypeassert
-			unstructuredDB.Object["metadata"].(map[string]interface{})["annotations"] = map[string]interface{}{} //nolint:forcetypeassert
+			unstructuredDB.Object["metadata"].(map[string]interface{})["annotations"] = make(map[string]interface{}) //nolint:forcetypeassert
 		}
 		//nolint:forcetypeassert
 		err = mergeMap(unstructuredDB.Object["metadata"].(map[string]interface{})["annotations"].(map[string]interface{}),
@@ -949,7 +948,7 @@ func (r *DatabaseReconciler) applyTemplate(
 
 	if unstructuredTemplate.Object["metadata"].(map[string]interface{})["labels"] != nil { //nolint:forcetypeassert
 		if unstructuredDB.Object["metadata"].(map[string]interface{})["labels"] == nil { //nolint:forcetypeassert
-			unstructuredDB.Object["metadata"].(map[string]interface{})["labels"] = map[string]interface{}{} //nolint:forcetypeassert
+			unstructuredDB.Object["metadata"].(map[string]interface{})["labels"] = make(map[string]interface{}) //nolint:forcetypeassert
 		}
 		//nolint:forcetypeassert
 		err = mergeMap(unstructuredDB.Object["metadata"].(map[string]interface{})["labels"].(map[string]interface{}),
