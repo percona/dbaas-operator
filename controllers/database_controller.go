@@ -365,6 +365,9 @@ func (r *DatabaseReconciler) reconcilePSMDB(ctx context.Context, req ctrl.Reques
 	if database.Spec.DatabaseConfig == "" {
 		database.Spec.DatabaseConfig = psmdbDefaultConfigurationTemplate
 	}
+	if err := r.Update(ctx, database); err != nil {
+		return err
+	}
 
 	if err := controllerutil.SetControllerReference(database, psmdb, r.Client.Scheme()); err != nil {
 		return err
@@ -623,6 +626,9 @@ func (r *DatabaseReconciler) reconcilePXC(ctx context.Context, req ctrl.Request,
 	}
 	if database.Spec.LoadBalancer.Type == "haproxy" && database.Spec.LoadBalancer.Configuration == "" {
 		database.Spec.LoadBalancer.Configuration = haProxyDefaultConfigurationTemplate
+	}
+	if err := r.Update(ctx, database); err != nil {
+		return err
 	}
 
 	if err := controllerutil.SetControllerReference(database, pxc, r.Client.Scheme()); err != nil {
