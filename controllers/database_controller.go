@@ -841,7 +841,7 @@ func (r *DatabaseReconciler) addPSMDBKnownTypes(scheme *runtime.Scheme) error {
 	}
 	psmdbSchemeGroupVersion := schema.GroupVersion{Group: "psmdb.percona.com", Version: strings.ReplaceAll("v"+version.String(), ".", "-")}
 	ver, _ := goversion.NewVersion("v1.12.0")
-	if version.version.GreaterThan(ver) {
+	if version.version.GreaterThanOrEqual(ver) {
 		psmdbSchemeGroupVersion = schema.GroupVersion{Group: "psmdb.percona.com", Version: "v1"}
 	}
 	scheme.AddKnownTypes(psmdbSchemeGroupVersion,

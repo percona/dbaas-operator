@@ -32,7 +32,6 @@ spec:
     - dbc
     singular: databasecluster
   scope: Namespaced
-  clusterServiceDNSMode: ServiceMesh
 ---
 apiVersion: apps/v1
 kind: Deployment
