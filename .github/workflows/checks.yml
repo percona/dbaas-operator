@@ -43,11 +43,6 @@ jobs:
           popd        && go mod tidy -v
           git status
           git diff --exit-code
-      - name: Update API compatibility descriptors
-        run: |
-          # log if descriptors changed, useful for "update descriptors" PRs
-          make descriptors
-          git diff --text
       - name: Run check-license
         run: |
           # run license checker on configured files
