@@ -5,10 +5,10 @@ go 1.19
 require (
 	github.com/BurntSushi/go-sumtype v0.0.0-20221020234012-480526a59796
 	github.com/apache/skywalking-eyes v0.4.0
-	github.com/daixiang0/gci v0.9.1
+	github.com/daixiang0/gci v0.10.1
 	github.com/golangci/golangci-lint v1.51.2
 	github.com/reviewdog/reviewdog v0.14.1
-	golang.org/x/tools v0.6.0
+	golang.org/x/tools v0.7.0
 	mvdan.cc/gofumpt v0.4.0
 )
 
@@ -198,17 +198,17 @@ require (
 	go.opencensus.io v0.23.0 // indirect
 	go.uber.org/atomic v1.7.0 // indirect
 	go.uber.org/multierr v1.6.0 // indirect
-	go.uber.org/zap v1.17.0 // indirect
+	go.uber.org/zap v1.24.0 // indirect
 	golang.org/x/build v0.0.0-20200616162219-07bebbe343e9 // indirect
 	golang.org/x/crypto v0.5.0 // indirect
 	golang.org/x/exp v0.0.0-20220722155223-a9213eeb770e // indirect
 	golang.org/x/exp/typeparams v0.0.0-20230203172020-98cc5a0785f9 // indirect
-	golang.org/x/mod v0.8.0 // indirect
-	golang.org/x/net v0.6.0 // indirect
+	golang.org/x/mod v0.9.0 // indirect
+	golang.org/x/net v0.8.0 // indirect
 	golang.org/x/oauth2 v0.0.0-20220411215720-9780585627b5 // indirect
 	golang.org/x/sync v0.1.0 // indirect
-	golang.org/x/sys v0.5.0 // indirect
-	golang.org/x/text v0.7.0 // indirect
+	golang.org/x/sys v0.6.0 // indirect
+	golang.org/x/text v0.8.0 // indirect
 	golang.org/x/time v0.0.0-20191024005414-555d28b269f0 // indirect
 	golang.org/x/xerrors v0.0.0-20220517211312-f3a8303e98df // indirect
 	google.golang.org/api v0.81.0 // indirect
