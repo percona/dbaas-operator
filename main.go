@@ -14,7 +14,8 @@
 // limitations under the License.
 
 // Package main ...
-
+//
+//nolint:goimports
 package main
 
 import (
