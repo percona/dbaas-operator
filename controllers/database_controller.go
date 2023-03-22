@@ -340,9 +340,6 @@ func (r *DatabaseReconciler) reconcilePSMDB(ctx context.Context, req ctrl.Reques
 		},
 		Spec: defaultPSMDBSpec,
 	}
-	if database.Spec.DatabaseConfig == "" {
-		database.Spec.DatabaseConfig = psmdbDefaultConfigurationTemplate
-	}
 	if err := r.Update(ctx, database); err != nil {
 		return err
 	}
@@ -398,7 +395,15 @@ func (r *DatabaseReconciler) reconcilePSMDB(ctx context.Context, req ctrl.Reques
 			Users: database.Spec.SecretsName,
 		}
 		psmdb.Spec.Mongod.Security.EncryptionKeySecret = fmt.Sprintf("%s-mongodb-encryption-key", database.Name)
-		psmdb.Spec.Replsets[0].Configuration = psmdbv1.MongoConfiguration(database.Spec.DatabaseConfig)
+
+		if database.Spec.DatabaseConfig != "" {
+			psmdb.Spec.Replsets[0].Configuration = psmdbv1.MongoConfiguration(database.Spec.DatabaseConfig)
+		}
+		if psmdb.Spec.Replsets[0].Configuration == "" {
+			// Config missing from the DatabaseCluster CR and the template (if any), apply the default one
+			psmdb.Spec.Replsets[0].Configuration = psmdbv1.MongoConfiguration(psmdbDefaultConfigurationTemplate)
+		}
+
 		psmdb.Spec.Replsets[0].Size = database.Spec.ClusterSize
 		psmdb.Spec.Replsets[0].VolumeSpec = &psmdbv1.VolumeSpec{
 			PersistentVolumeClaim: &corev1.PersistentVolumeClaimSpec{
@@ -586,24 +591,6 @@ func (r *DatabaseReconciler) reconcilePXC(ctx context.Context, req ctrl.Request,
 		},
 		Spec: defaultPXCSpec,
 	}
-	if database.Spec.DatabaseConfig == "" {
-		gCacheSize := "600M"
-
-		if database.Spec.DBInstance.Memory.CmpInt64(memorySmallSize) > 0 && database.Spec.DBInstance.Memory.CmpInt64(memoryMediumSize) <= 0 {
-			gCacheSize = "2457M"
-		}
-		if database.Spec.DBInstance.Memory.CmpInt64(memoryMediumSize) > 0 && database.Spec.DBInstance.Memory.CmpInt64(memoryLargeSize) <= 0 {
-			gCacheSize = "9830M"
-		}
-		if database.Spec.DBInstance.Memory.CmpInt64(memoryLargeSize) >= 0 {
-			gCacheSize = "9830M"
-		}
-		ver, _ := goversion.NewVersion("v1.11.0")
-		database.Spec.DatabaseConfig = fmt.Sprintf(pxcDefaultConfigurationTemplate, gCacheSize)
-		if version.version.GreaterThan(ver) {
-			database.Spec.DatabaseConfig = fmt.Sprintf(pxcMinimalConfigurationTemplate, gCacheSize)
-		}
-	}
 	if database.Spec.LoadBalancer.Type == "haproxy" && database.Spec.LoadBalancer.Configuration == "" {
 		database.Spec.LoadBalancer.Configuration = haProxyDefaultConfigurationTemplate
 	}
@@ -657,7 +644,30 @@ func (r *DatabaseReconciler) reconcilePXC(ctx context.Context, req ctrl.Request,
 		pxc.Spec.AllowUnsafeConfig = database.Spec.ClusterSize == 1
 		pxc.Spec.Pause = database.Spec.Pause
 		pxc.Spec.SecretsName = database.Spec.SecretsName
-		pxc.Spec.PXC.PodSpec.Configuration = database.Spec.DatabaseConfig
+
+		if database.Spec.DatabaseConfig != "" {
+			pxc.Spec.PXC.PodSpec.Configuration = database.Spec.DatabaseConfig
+		}
+		if pxc.Spec.PXC.PodSpec.Configuration == "" {
+			// Config missing from the DatabaseCluster CR and the template (if any), apply the default one
+			gCacheSize := "600M"
+
+			if database.Spec.DBInstance.Memory.CmpInt64(memorySmallSize) > 0 && database.Spec.DBInstance.Memory.CmpInt64(memoryMediumSize) <= 0 {
+				gCacheSize = "2457M"
+			}
+			if database.Spec.DBInstance.Memory.CmpInt64(memoryMediumSize) > 0 && database.Spec.DBInstance.Memory.CmpInt64(memoryLargeSize) <= 0 {
+				gCacheSize = "9830M"
+			}
+			if database.Spec.DBInstance.Memory.CmpInt64(memoryLargeSize) >= 0 {
+				gCacheSize = "9830M"
+			}
+			ver, _ := goversion.NewVersion("v1.11.0")
+			pxc.Spec.PXC.PodSpec.Configuration = fmt.Sprintf(pxcDefaultConfigurationTemplate, gCacheSize)
+			if version.version.GreaterThan(ver) {
+				pxc.Spec.PXC.PodSpec.Configuration = fmt.Sprintf(pxcMinimalConfigurationTemplate, gCacheSize)
+			}
+		}
+
 		pxc.Spec.PXC.PodSpec.Size = database.Spec.ClusterSize
 		pxc.Spec.PXC.PodSpec.Image = database.Spec.DatabaseImage
 		pxc.Spec.PXC.PodSpec.VolumeSpec = &pxcv1.VolumeSpec{
