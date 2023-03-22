@@ -586,7 +586,7 @@ func (r *DatabaseReconciler) reconcilePXC(ctx context.Context, req ctrl.Request,
 			}
 		}
 		if jobRunning {
-			pxcSpec.Pause = current.Spec.Pause
+			database.Spec.Pause = current.Spec.Pause
 		}
 	}
 
