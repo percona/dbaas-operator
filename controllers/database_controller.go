@@ -330,21 +330,6 @@ func (r *DatabaseReconciler) reconcilePSMDB(ctx context.Context, req ctrl.Reques
 	if err != nil {
 		return err
 	}
-	clusterType, err := r.getClusterType(ctx)
-	if err != nil {
-		return err
-	}
-
-	psmdbSpec := defaultPSMDBSpec
-	if clusterType == ClusterTypeEKS {
-		affinity := &psmdbv1.PodAffinity{
-			TopologyKey: pointer.ToString("kubernetes.io/hostname"),
-		}
-		psmdbSpec.Replsets[0].MultiAZ.Affinity = affinity
-		psmdbSpec.Sharding.ConfigsvrReplSet.MultiAZ.Affinity = affinity
-		psmdbSpec.Sharding.ConfigsvrReplSet.Arbiter.MultiAZ.Affinity = affinity
-		psmdbSpec.Sharding.Mongos.MultiAZ.Affinity = affinity
-	}
 
 	psmdb := &psmdbv1.PerconaServerMongoDB{
 		ObjectMeta: metav1.ObjectMeta{
@@ -353,7 +338,7 @@ func (r *DatabaseReconciler) reconcilePSMDB(ctx context.Context, req ctrl.Reques
 			Finalizers:  database.Finalizers,
 			Annotations: database.Annotations,
 		},
-		Spec: psmdbSpec,
+		Spec: defaultPSMDBSpec,
 	}
 	if database.Spec.DatabaseConfig == "" {
 		database.Spec.DatabaseConfig = psmdbDefaultConfigurationTemplate
@@ -369,6 +354,22 @@ func (r *DatabaseReconciler) reconcilePSMDB(ctx context.Context, req ctrl.Reques
 		psmdb.TypeMeta = metav1.TypeMeta{
 			APIVersion: version.ToAPIVersion(psmdbAPIGroup),
 			Kind:       PerconaServerMongoDBKind,
+		}
+
+		clusterType, err := r.getClusterType(ctx)
+		if err != nil {
+			return err
+		}
+
+		psmdb.Spec = defaultPSMDBSpec
+		if clusterType == ClusterTypeEKS {
+			affinity := &psmdbv1.PodAffinity{
+				TopologyKey: pointer.ToString("kubernetes.io/hostname"),
+			}
+			psmdb.Spec.Replsets[0].MultiAZ.Affinity = affinity
+			psmdb.Spec.Sharding.ConfigsvrReplSet.MultiAZ.Affinity = affinity
+			psmdb.Spec.Sharding.ConfigsvrReplSet.Arbiter.MultiAZ.Affinity = affinity
+			psmdb.Spec.Sharding.Mongos.MultiAZ.Affinity = affinity
 		}
 
 		dbTemplateKind, hasTemplateKind := database.ObjectMeta.Annotations[dbTemplateKindAnnotationKey]
@@ -531,20 +532,6 @@ func (r *DatabaseReconciler) reconcilePXC(ctx context.Context, req ctrl.Request,
 	if err != nil {
 		return err
 	}
-	clusterType, err := r.getClusterType(ctx)
-	if err != nil {
-		return err
-	}
-
-	pxcSpec := defaultPXCSpec
-	if clusterType == ClusterTypeEKS {
-		affinity := &pxcv1.PodAffinity{
-			TopologyKey: pointer.ToString("kubernetes.io/hostname"),
-		}
-		pxcSpec.PXC.PodSpec.Affinity = affinity
-		pxcSpec.HAProxy.PodSpec.Affinity = affinity
-		pxcSpec.ProxySQL.Affinity = affinity
-	}
 
 	current := &pxcv1.PerconaXtraDBCluster{}
 	err = r.Get(ctx, types.NamespacedName{Name: database.Name, Namespace: database.Namespace}, current)
@@ -597,7 +584,7 @@ func (r *DatabaseReconciler) reconcilePXC(ctx context.Context, req ctrl.Request,
 			Finalizers:  database.Finalizers,
 			Annotations: database.Annotations,
 		},
-		Spec: pxcSpec,
+		Spec: defaultPXCSpec,
 	}
 	if database.Spec.DatabaseConfig == "" {
 		gCacheSize := "600M"
@@ -631,6 +618,21 @@ func (r *DatabaseReconciler) reconcilePXC(ctx context.Context, req ctrl.Request,
 		pxc.TypeMeta = metav1.TypeMeta{
 			APIVersion: version.ToAPIVersion(pxcAPIGroup),
 			Kind:       PerconaXtraDBClusterKind,
+		}
+
+		clusterType, err := r.getClusterType(ctx)
+		if err != nil {
+			return err
+		}
+
+		pxc.Spec = defaultPXCSpec
+		if clusterType == ClusterTypeEKS {
+			affinity := &pxcv1.PodAffinity{
+				TopologyKey: pointer.ToString("kubernetes.io/hostname"),
+			}
+			pxc.Spec.PXC.PodSpec.Affinity = affinity
+			pxc.Spec.HAProxy.PodSpec.Affinity = affinity
+			pxc.Spec.ProxySQL.Affinity = affinity
 		}
 
 		dbTemplateKind, hasTemplateKind := database.ObjectMeta.Annotations[dbTemplateKindAnnotationKey]
