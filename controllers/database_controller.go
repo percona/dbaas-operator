@@ -425,7 +425,6 @@ func (r *DatabaseReconciler) reconcilePSMDB(ctx context.Context, req ctrl.Reques
 		}
 		psmdb.Spec.Sharding.ConfigsvrReplSet.Size = database.Spec.ClusterSize
 		psmdb.Spec.Sharding.ConfigsvrReplSet.VolumeSpec = &psmdbv1.VolumeSpec{
-
 			PersistentVolumeClaim: psmdbv1.PVCSpec{
 				PersistentVolumeClaimSpec: &corev1.PersistentVolumeClaimSpec{
 					StorageClassName: database.Spec.DBInstance.StorageClassName,
