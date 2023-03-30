@@ -43,6 +43,12 @@ type (
 		BackupName      string        `json:"backupName,omitempty"`
 		BackupSource    *BackupSource `json:"backupSource,omitempty"`
 	}
+	PITR struct {
+		BackupSource *BackupSource `json:"backupSource"`
+		Type         string        `json:"type"`
+		Date         metav1.Time   `json:"date"`
+		GTID         string        `json:"gtid"`
+	}
 	// BackupSource represents settings of a source where to get a backup to run restoration.
 	BackupSource struct {
 		Destination           string                     `json:"destination,omitempty"`
