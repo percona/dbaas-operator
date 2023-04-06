@@ -160,6 +160,12 @@ func (r *DatabaseClusterRestoreReconciler) restorePSMDB(restore *dbaasv1.Databas
 				}
 			}
 		}
+		if restore.Spec.PITR != nil {
+			psmdbCR.Spec.PITR = &psmdbv1.PITRestoreSpec{
+				Type: psmdbv1.PITRestoreType(restore.Spec.PITR.Type),
+				Date: &psmdbv1.PITRestoreDate{restore.Spec.PITR.Date},
+			}
+		}
 		return nil
 	})
 	if err != nil {
@@ -218,6 +224,20 @@ func (r *DatabaseClusterRestoreReconciler) restorePXC(restore *dbaasv1.DatabaseC
 					Endpoint:          restore.Spec.BackupSource.Azure.EndpointURL,
 					StorageClass:      restore.Spec.BackupSource.Azure.StorageClass,
 				}
+			}
+		}
+		if restore.Spec.PITR != nil {
+			storageName := pxcCR.Spec.BackupSource.StorageName
+			if restore.Spec.PITR.BackupSource != nil {
+				storageName = restore.Spec.PITR.BackupSource.StorageName
+			}
+			pxcCR.Spec.PITR = &pxcv1.PITR{
+				BackupSource: &pxcv1.PXCBackupStatus{
+					StorageName: storageName,
+				},
+				Type: restore.Spec.PITR.Type,
+				Date: restore.Spec.PITR.Date.String(),
+				GTID: restore.Spec.PITR.GTID,
 			}
 		}
 		return nil

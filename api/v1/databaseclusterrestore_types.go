@@ -42,6 +42,7 @@ type (
 		DatabaseType    EngineType    `json:"databaseType"`
 		BackupName      string        `json:"backupName,omitempty"`
 		BackupSource    *BackupSource `json:"backupSource,omitempty"`
+		PITR            *PITR         `json:"pitr,omitempty"`
 	}
 	// PITR represents a specification to configure point in time recovery for a database backup/restore
 	PITR struct {
