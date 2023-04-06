@@ -259,6 +259,8 @@ spec:
                       type: string
                     type: object
                   pitr:
+                    description: PITRSpec represents a specification to configure
+                      point in time recovery for a database backup/restore
                     properties:
                       compressionLevel:
                         type: integer
@@ -266,8 +268,6 @@ spec:
                         type: string
                       enabled:
                         type: boolean
-                      oplogSpanMin:
-                        type: number
                       resources:
                         description: ResourceRequirements describes the compute resource
                           requirements.
@@ -321,8 +321,7 @@ spec:
                       storageName:
                         type: string
                       timeBetweenUploads:
-                        format: int64
-                        type: integer
+                        type: number
                     required:
                     - storageName
                     type: object

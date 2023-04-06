@@ -475,7 +475,7 @@ func (r *DatabaseReconciler) reconcilePSMDB(ctx context.Context, req ctrl.Reques
 				Labels:                   database.Spec.Backup.Labels,
 				PITR: psmdbv1.PITRSpec{
 					Enabled:          database.Spec.Backup.PITR.Enabled,
-					OplogSpanMin:     database.Spec.Backup.PITR.OplogSpanMin,
+					OplogSpanMin:     database.Spec.Backup.PITR.TimeBetweenUploads,
 					CompressionType:  database.Spec.Backup.PITR.CompressionType,
 					CompressionLevel: database.Spec.Backup.PITR.CompressionLevel,
 				},
@@ -748,7 +748,7 @@ func (r *DatabaseReconciler) reconcilePXC(ctx context.Context, req ctrl.Request,
 					Enabled:            database.Spec.Backup.PITR.Enabled,
 					StorageName:        database.Spec.Backup.PITR.StorageName,
 					Resources:          database.Spec.Backup.PITR.Resources,
-					TimeBetweenUploads: float64(database.Spec.Backup.PITR.TimeBetweenUploads),
+					TimeBetweenUploads: database.Spec.Backup.PITR.TimeBetweenUploads.Float64() * 60,
 				},
 			}
 			storages := make(map[string]*pxcv1.BackupStorageSpec)

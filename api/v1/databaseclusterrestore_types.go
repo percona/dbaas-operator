@@ -43,6 +43,7 @@ type (
 		BackupName      string        `json:"backupName,omitempty"`
 		BackupSource    *BackupSource `json:"backupSource,omitempty"`
 	}
+	// PITR represents a specification to configure point in time recovery for a database backup/restore
 	PITR struct {
 		BackupSource *BackupSource `json:"backupSource"`
 		Type         string        `json:"type"`
