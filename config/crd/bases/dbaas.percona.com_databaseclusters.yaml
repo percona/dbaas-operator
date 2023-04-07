@@ -320,7 +320,7 @@ spec:
                         type: object
                       storageName:
                         type: string
-                      timeBetweenUploads:
+                      timeBetweenUploadsMin:
                         type: number
                     required:
                     - storageName

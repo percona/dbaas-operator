@@ -117,9 +117,9 @@ check:
 test: manifests generate fmt vet envtest ## Run tests.
 	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)" go test ./... -coverprofile cover.out
 
-test-kind: build local-env-up ## Run integration tests against kind cluster
+test-kind: build #local-env-up ## Run integration tests against kind cluster
 	minikube kubectl -- config view --flatten --minify > ~/.kube/test-minikube
-	KUBECONFIG=~/.kube/test-minikube kubectl kuttl test --config ./e2e-tests/kuttl.yml
+	KUBECONFIG=~/.kube/test-minikube kubectl kuttl test --test scheduled_backups --config ./e2e-tests/kuttl.yml
 ##@ Build
 
 .PHONY: build

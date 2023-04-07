@@ -183,12 +183,12 @@ type (
 	}
 	// PITRSpec represents a specification to configure point in time recovery for a database backup/restore
 	PITRSpec struct {
-		Enabled            bool                        `json:"enabled,omitempty"`
-		TimeBetweenUploads numstr.NumberString         `json:"timeBetweenUploads,omitempty"`
-		CompressionType    compress.CompressionType    `json:"compressionType,omitempty"`
-		CompressionLevel   *int                        `json:"compressionLevel,omitempty"`
-		StorageName        string                      `json:"storageName"`
-		Resources          corev1.ResourceRequirements `json:"resources,omitempty"`
+		Enabled               bool                        `json:"enabled,omitempty"`
+		TimeBetweenUploadsMin numstr.NumberString         `json:"timeBetweenUploadsMin,omitempty"`
+		CompressionType       compress.CompressionType    `json:"compressionType,omitempty"`
+		CompressionLevel      *int                        `json:"compressionLevel,omitempty"`
+		StorageName           string                      `json:"storageName"`
+		Resources             corev1.ResourceRequirements `json:"resources,omitempty"`
 	}
 	// VolumeSpec represents a specification to configure volume for underlying database.
 	VolumeSpec struct {
