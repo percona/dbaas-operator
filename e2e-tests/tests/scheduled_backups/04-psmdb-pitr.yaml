@@ -26,6 +26,7 @@ spec:
     enabled: true
     pitr:
       enabled: true
+      storageName: aws
       compressionLevel: 1
       timeBetweenUploadsMin: 1
     image: perconalab/percona-server-mongodb-operator:main-backup
