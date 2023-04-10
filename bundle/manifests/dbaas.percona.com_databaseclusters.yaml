@@ -259,7 +259,7 @@ spec:
                     type: object
                   pitr:
                     description: PITRSpec represents a specification to configure
-                      point in time recovery for a database backup/restore
+                      point in time recovery for a database backup/restore.
                     properties:
                       compressionLevel:
                         type: integer

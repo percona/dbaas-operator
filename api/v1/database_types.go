@@ -183,7 +183,7 @@ type (
 		RuntimeClassName         *string                     `json:"runtimeClassName,omitempty"`
 		VerifyTLS                *bool                       `json:"verifyTLS,omitempty"`
 	}
-	// PITRSpec represents a specification to configure point in time recovery for a database backup/restore
+	// PITRSpec represents a specification to configure point in time recovery for a database backup/restore.
 	PITRSpec struct {
 		Enabled               bool                        `json:"enabled,omitempty"`
 		TimeBetweenUploadsMin numstr.NumberString         `json:"timeBetweenUploadsMin,omitempty"`

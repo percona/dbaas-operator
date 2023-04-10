@@ -47,7 +47,7 @@ type (
 		BackupSource    *BackupSource `json:"backupSource,omitempty"`
 		PITR            *PITR         `json:"pitr,omitempty"`
 	}
-	// PITR represents a specification to configure point in time recovery for a database backup/restore
+	// PITR represents a specification to configure point in time recovery for a database backup/restore.
 	PITR struct {
 		BackupSource *BackupSource `json:"backupSource,omitempty"`
 		Type         string        `json:"type"`
@@ -68,15 +68,20 @@ type (
 	}
 )
 
+// RestoreDate is a data type for better time.Time support.
 // +kubebuilder:validation:Type=string
 type RestoreDate struct {
 	metav1.Time `json:",inline"`
 }
 
+// OpenAPISchemaType returns a schema type for OperAPI specification.
 func (RestoreDate) OpenAPISchemaType() []string { return []string{"string"} }
+
+// OpenAPISchemaFormat returns a format for OperAPI specification.
 func (RestoreDate) OpenAPISchemaFormat() string { return "" }
 
-func (t *RestoreDate) UnmarshalJSON(b []byte) (err error) {
+// UnmarshalJSON unmarshals JSON.
+func (t *RestoreDate) UnmarshalJSON(b []byte) error {
 	if len(b) == 4 && string(b) == "null" {
 		t.Time = metav1.NewTime(time.Time{})
 		return nil
@@ -84,13 +89,13 @@ func (t *RestoreDate) UnmarshalJSON(b []byte) (err error) {
 
 	var str string
 
-	if err = json.Unmarshal(b, &str); err != nil {
+	if err := json.Unmarshal(b, &str); err != nil {
 		return err
 	}
 
 	pt, err := time.Parse("2006-01-02 15:04:05", str)
 	if err != nil {
-		return
+		return err
 	}
 
 	t.Time = metav1.NewTime(pt)

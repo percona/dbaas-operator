@@ -149,7 +149,7 @@ spec:
                 type: string
               pitr:
                 description: PITR represents a specification to configure point in
-                  time recovery for a database backup/restore
+                  time recovery for a database backup/restore.
                 properties:
                   backupSource:
                     description: BackupSource represents settings of a source where
