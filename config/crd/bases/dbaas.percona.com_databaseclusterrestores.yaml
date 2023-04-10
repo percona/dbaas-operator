@@ -131,15 +131,15 @@ spec:
                     type: string
                   sslSecretName:
                     type: string
-                  storage_type:
-                    description: BackupStorageType represents backup storage type.
-                    type: string
                   storageName:
+                    type: string
+                  storageType:
+                    description: BackupStorageType represents backup storage type.
                     type: string
                   vaultSecretName:
                     type: string
                 required:
-                - storage_type
+                - storageType
                 type: object
               databaseCluster:
                 type: string
@@ -218,15 +218,15 @@ spec:
                         type: string
                       sslSecretName:
                         type: string
-                      storage_type:
-                        description: BackupStorageType represents backup storage type.
-                        type: string
                       storageName:
+                        type: string
+                      storageType:
+                        description: BackupStorageType represents backup storage type.
                         type: string
                       vaultSecretName:
                         type: string
                     required:
-                    - storage_type
+                    - storageType
                     type: object
                   date:
                     format: date-time

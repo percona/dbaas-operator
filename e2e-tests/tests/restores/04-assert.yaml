@@ -1,0 +1,96 @@
+apiVersion: kuttl.dev/v1beta1
+kind: TestAssert
+timeout: 300
+---
+apiVersion: dbaas.percona.com/v1
+kind: DatabaseCluster
+metadata:
+  name: test-psmdb-cluster
+spec:
+  databaseType: psmdb
+  databaseImage: percona/percona-server-mongodb:4.4.10-11
+  databaseConfig: |
+     operationProfiling:
+        mode: slowOp
+  secretsName: psmdb-sample-secrets
+  dbInstance:
+    cpu: 500m
+    memory: 1G
+    diskSize: 15G
+---
+apiVersion: psmdb.percona.com/v1
+kind: PerconaServerMongoDB
+metadata:
+  name: test-psmdb-cluster
+spec:
+  crVersion: 1.13.0
+  image: percona/percona-server-mongodb:4.4.10-11
+  secrets:
+    users:  psmdb-sample-secrets
+  backup:
+    enabled: true
+    pitr:
+      enabled: true
+      compressionLevel: 1
+      oplogSpanMin: 1
+    image: perconalab/percona-server-mongodb-operator:main-backup
+    serviceAccountName: percona-server-mongodb-operator
+    storages:
+      aws:
+        type: s3
+        s3:
+          bucket: test
+          credentialsSecret: test-pxc-cluster-backup-s3
+          region: us-west-1
+      azure:
+        type: azure
+        azure:
+          container: test
+          credentialsSecret: test-pxc-cluster-backup-azure
+        s3:
+          bucket: ""
+    tasks:
+      - name: daily-backup
+        schedule: "0 0 * * *"
+        keep: 5
+        storageName: aws
+        enabled: true
+      - name: azure-backup
+        schedule: "0 0 * * *"
+        keep: 5
+        storageName: azure
+        enabled: true
+---
+apiVersion: dbaas.percona.com/v1
+kind: DatabaseClusterRestore
+metadata:
+  name: test-psmdb-restore
+spec:
+  databaseCluster: test-psmdb-cluster
+  databaseType: psmdb
+  pitr:
+    type: date
+    date: "2023-01-12 12:22:33"
+  backupSource:
+    destination: s3://bucket/backup
+    storageType: s3
+    s3:
+      bucket: test-bucket
+      region: eu-central-1
+      credentialsSecret: creds-backup
+---
+apiVersion: psmdb.percona.com/v1
+kind: PerconaServerMongoDBRestore
+metadata:
+  name: test-psmdb-restore
+spec:
+  clusterName: test-psmdb-cluster
+  pitr:
+    type: date
+    date: "2023-01-12 12:22:33"
+  backupSource:
+    destination: s3://bucket/backup
+    s3:
+      bucket: test-bucket
+      region: eu-central-1
+      credentialsSecret: creds-backup

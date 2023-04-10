@@ -57,7 +57,7 @@ type (
 		StorageName           string                     `json:"storageName,omitempty"`
 		S3                    *BackupStorageProviderSpec `json:"s3,omitempty"`
 		Azure                 *BackupStorageProviderSpec `json:"azure,omitempty"`
-		StorageType           BackupStorageType          `json:"storage_type"`
+		StorageType           BackupStorageType          `json:"storageType"`
 		Image                 string                     `json:"image,omitempty"`
 		SSLSecretName         string                     `json:"sslSecretName,omitempty"`
 		SSLInternalSecretName string                     `json:"sslInternalSecretName,omitempty"`
