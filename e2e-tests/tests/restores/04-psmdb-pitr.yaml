@@ -5,7 +5,7 @@ timeout: 10
 apiVersion: dbaas.percona.com/v1
 kind: DatabaseCluster
 metadata:
-  name: test-psmdb-cluster
+  name: test-psmdb-cluster1
 spec:
   databaseType: psmdb
   databaseImage: percona/percona-server-mongodb:4.4.10-11
@@ -60,13 +60,13 @@ spec:
 apiVersion: dbaas.percona.com/v1
 kind: DatabaseClusterRestore
 metadata:
-  name: test-psmdb-restore
+  name: test-psmdb-restore1
 spec:
-  databaseCluster: test-psmdb-cluster
+  databaseCluster: test-psmdb-cluster1
   databaseType: psmdb
   pitr:
     type: date
-    date: "2023-01-12 12:22:33"
+    date: 2023-01-12 12:22:33
   backupSource:
     destination: s3://bucket/backup
     storageType: s3

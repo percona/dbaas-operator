@@ -16,6 +16,9 @@
 package v1
 
 import (
+	"encoding/json"
+	"time"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -46,10 +49,10 @@ type (
 	}
 	// PITR represents a specification to configure point in time recovery for a database backup/restore
 	PITR struct {
-		BackupSource *BackupSource `json:"backupSource"`
+		BackupSource *BackupSource `json:"backupSource,omitempty"`
 		Type         string        `json:"type"`
-		Date         metav1.Time   `json:"date"`
-		GTID         string        `json:"gtid"`
+		Date         *RestoreDate  `json:"date,omitempty"`
+		GTID         string        `json:"gtid,omitempty"`
 	}
 	// BackupSource represents settings of a source where to get a backup to run restoration.
 	BackupSource struct {
@@ -64,6 +67,36 @@ type (
 		VaultSecretName       string                     `json:"vaultSecretName,omitempty"`
 	}
 )
+
+// +kubebuilder:validation:Type=string
+type RestoreDate struct {
+	metav1.Time `json:",inline"`
+}
+
+func (RestoreDate) OpenAPISchemaType() []string { return []string{"string"} }
+func (RestoreDate) OpenAPISchemaFormat() string { return "" }
+
+func (t *RestoreDate) UnmarshalJSON(b []byte) (err error) {
+	if len(b) == 4 && string(b) == "null" {
+		t.Time = metav1.NewTime(time.Time{})
+		return nil
+	}
+
+	var str string
+
+	if err = json.Unmarshal(b, &str); err != nil {
+		return err
+	}
+
+	pt, err := time.Parse("2006-01-02 15:04:05", str)
+	if err != nil {
+		return
+	}
+
+	t.Time = metav1.NewTime(pt)
+
+	return nil
+}
 
 // DatabaseClusterRestoreStatus defines the observed state of DatabaseClusterRestore.
 type DatabaseClusterRestoreStatus struct {

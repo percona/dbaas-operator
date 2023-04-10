@@ -228,16 +228,12 @@ spec:
                     - storageType
                     type: object
                   date:
-                    format: date-time
                     type: string
                   gtid:
                     type: string
                   type:
                     type: string
                 required:
-                - backupSource
-                - date
-                - gtid
                 - type
                 type: object
             required:

@@ -17,6 +17,7 @@ package controllers
 
 import (
 	"context"
+	"encoding/json"
 	"time"
 
 	psmdbv1 "github.com/percona/percona-server-mongodb-operator/pkg/apis/psmdb/v1"
@@ -85,7 +86,7 @@ func (r *DatabaseClusterRestoreReconciler) Reconcile(ctx context.Context, req ct
 	}
 	if cr.Spec.DatabaseType == dbaasv1.PSMDBEngine {
 		if err := r.restorePSMDB(cr); err != nil { //nolint:contextcheck
-			logger.Error(err, "unable to restore PXC Cluster")
+			logger.Error(err, "unable to restore PSMDB Cluster")
 			return reconcile.Result{}, err
 		}
 	}
@@ -161,9 +162,18 @@ func (r *DatabaseClusterRestoreReconciler) restorePSMDB(restore *dbaasv1.Databas
 			}
 		}
 		if restore.Spec.PITR != nil {
+			date := &psmdbv1.PITRestoreDate{}
+			data, err := json.Marshal(restore.Spec.PITR.Date)
+			if err != nil {
+				return err
+			}
+			err = date.UnmarshalJSON(data)
+			if err != nil {
+				return err
+			}
 			psmdbCR.Spec.PITR = &psmdbv1.PITRestoreSpec{
 				Type: psmdbv1.PITRestoreType(restore.Spec.PITR.Type),
-				Date: &psmdbv1.PITRestoreDate{Time: restore.Spec.PITR.Date},
+				Date: date,
 			}
 		}
 		return nil
@@ -236,7 +246,7 @@ func (r *DatabaseClusterRestoreReconciler) restorePXC(restore *dbaasv1.DatabaseC
 					StorageName: storageName,
 				},
 				Type: restore.Spec.PITR.Type,
-				Date: restore.Spec.PITR.Date.String(),
+				Date: restore.Spec.PITR.Date.Format("2006-01-02 15:04:05"),
 				GTID: restore.Spec.PITR.GTID,
 			}
 		}
