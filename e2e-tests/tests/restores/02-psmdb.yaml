@@ -13,11 +13,11 @@ spec:
      operationProfiling:
         mode: slowOp
   secretsName: psmdb-sample-secrets
-  clusterSize: 1
+  clusterSize: 3
   loadBalancer:
     type: mongos
     exposeType: ClusterIP
-    size: 1
+    size: 2
   dbInstance:
     cpu: 500m
     memory: 1G
@@ -62,7 +62,9 @@ spec:
   backupSource:
     destination: s3://bucket/backup
     storageType: s3
+    storageName: aws
     s3:
       bucket: test-bucket
       region: eu-central-1
+      endpointUrl: https://s3.eu-central1.amazonaws.com
       credentialsSecret: creds-backup

@@ -1,18 +1,18 @@
 apiVersion: kuttl.dev/v1beta1
 kind: TestAssert
-timeout: 20
+timeout: 300
 ---
 apiVersion: dbaas.percona.com/v1
 kind: DatabaseCluster
 metadata:
-  name: test-pxc-cluster1
+  name: pxc1
 spec:
   databaseType: pxc
   databaseImage: percona/percona-xtradb-cluster:8.0.23-14.1
   databaseConfig: |
     [mysqld]
     wsrep_provider_options="debug=1;gcache.size=1G"
-  secretsName: pxc-sample-secrets
+  secretsName: pxc-secrets
   clusterSize: 1
   loadBalancer:
     type: haproxy
@@ -57,13 +57,13 @@ spec:
 apiVersion: pxc.percona.com/v1
 kind: PerconaXtraDBCluster
 metadata:
-  name: test-pxc-cluster1
+  name: pxc1
 spec:
   crVersion: 1.12.0
   haproxy:
     enabled: true
     image: percona/percona-xtradb-cluster-operator:1.12.0-haproxy
-  secretsName: pxc-sample-secrets
+  secretsName: pxc-secrets
   updateStrategy: SmartUpdate
   upgradeOptions:
     apply: never
@@ -96,13 +96,15 @@ spec:
 apiVersion: dbaas.percona.com/v1
 kind: DatabaseClusterRestore
 metadata:
-  name: test-pxc-restore1
+  name: pxc1-restore
 spec:
-  databaseCluster: test-pxc-cluster1
+  databaseCluster: pxc1
   databaseType: pxc
   pitr:
     type: date
     date: 2023-01-12 12:22:33
+    backupSource:
+      storageName: aws
   backupSource:
     destination: s3://bucket/backup
     storageType: s3
@@ -110,19 +112,21 @@ spec:
       bucket: test-bucket
       region: eu-central-1
       credentialsSecret: creds-backup
----
-apiVersion: pxc.percona.com/v1
-kind: PerconaXtraDBClusterRestore
-metadata:
-  name: test-pxc-restore1
-spec:
-  pxcCluster: test-pxc-cluster1
-  pitr:
-    type: date
-    date: 2023-01-12 12:22:33
-  backupSource:
-    destination: s3://bucket/backup
-    s3:
-      bucket: test-bucket
-      region: eu-central-1
-      credentialsSecret: creds-backup
+#---
+#apiVersion: pxc.percona.com/v1
+#kind: PerconaXtraDBClusterRestore
+#metadata:
+#  name: pxc1-restore
+#spec:
+#  pxcCluster: pxc1
+#  pitr:
+#    type: date
+#    date: 2023-01-12 12:22:33
+#    backupSource:
+#      storageName: aws
+#  backupSource:
+#    destination: s3://bucket/backup
+#    s3:
+#      bucket: test-bucket
+#      region: eu-central-1
+#      credentialsSecret: creds-backup

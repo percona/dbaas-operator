@@ -138,8 +138,6 @@ spec:
                     type: string
                   vaultSecretName:
                     type: string
-                required:
-                - storageType
                 type: object
               databaseCluster:
                 type: string
@@ -225,8 +223,6 @@ spec:
                         type: string
                       vaultSecretName:
                         type: string
-                    required:
-                    - storageType
                     type: object
                   date:
                     type: string

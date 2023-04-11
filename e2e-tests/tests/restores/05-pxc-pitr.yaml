@@ -5,14 +5,14 @@ timeout: 10
 apiVersion: dbaas.percona.com/v1
 kind: DatabaseCluster
 metadata:
-  name: test-pxc-cluster1
+  name: pxc1
 spec:
   databaseType: pxc
   databaseImage: percona/percona-xtradb-cluster:8.0.23-14.1
   databaseConfig: |
     [mysqld]
     wsrep_provider_options="debug=1;gcache.size=1G"
-  secretsName: pxc-sample-secrets
+  secretsName: pxc-secrets
   clusterSize: 1
   loadBalancer:
     type: haproxy
@@ -57,13 +57,15 @@ spec:
 apiVersion: dbaas.percona.com/v1
 kind: DatabaseClusterRestore
 metadata:
-  name: test-pxc-restore1
+  name: pxc1-restore
 spec:
-  databaseCluster: test-pxc-cluster1
+  databaseCluster: pxc1
   databaseType: pxc
   pitr:
     type: date
     date: "2023-01-12 12:22:33"
+    backupSource:
+      storageName: aws
   backupSource:
     destination: s3://bucket/backup
     storageType: s3

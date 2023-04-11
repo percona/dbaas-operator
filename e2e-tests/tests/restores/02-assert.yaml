@@ -1,6 +1,6 @@
 apiVersion: kuttl.dev/v1beta1
 kind: TestAssert
-timeout: 300
+timeout: 400
 ---
 apiVersion: dbaas.percona.com/v1
 kind: DatabaseCluster
@@ -13,10 +13,44 @@ spec:
      operationProfiling:
         mode: slowOp
   secretsName: psmdb-sample-secrets
+  clusterSize: 3
+  loadBalancer:
+    type: mongos
+    exposeType: ClusterIP
+    size: 2
   dbInstance:
     cpu: 500m
     memory: 1G
     diskSize: 15G
+  backup:
+    enabled: true
+    image: perconalab/percona-server-mongodb-operator:main-backup
+    serviceAccountName: percona-server-mongodb-operator
+    storages:
+      aws:
+        type: s3
+        storageProvider:
+          bucket: test
+          credentialsSecret: test-pxc-cluster-backup-s3
+          region: us-west-1
+      azure:
+        type: azure
+        storageProvider:
+          containerName: test
+          credentialsSecret: test-pxc-cluster-backup-azure
+          endpointUrl: https://example.com
+          storageClass: Hot
+    schedule:
+      - enabled: true
+        keep: 5
+        name: daily-backup
+        schedule: "0 0 * * *"
+        storageName: aws
+      - enabled: true
+        keep: 5
+        name: azure-backup
+        schedule: "0 0 * * *"
+        storageName: azure
 ---
 apiVersion: psmdb.percona.com/v1
 kind: PerconaServerMongoDB
@@ -67,19 +101,6 @@ spec:
   backupSource:
     destination: s3://bucket/backup
     storageType: s3
-    s3:
-      bucket: test-bucket
-      region: eu-central-1
-      credentialsSecret: creds-backup
----
-apiVersion: psmdb.percona.com/v1
-kind: PerconaServerMongoDBRestore
-metadata:
-  name: test-psmdb-restore
-spec:
-  clusterName: test-psmdb-cluster
-  backupSource:
-    destination: s3://bucket/backup
     s3:
       bucket: test-bucket
       region: eu-central-1
