@@ -137,6 +137,8 @@ type (
 		Storages                 map[string]*BackupStorageSpec `json:"storages,omitempty"`
 		Annotations              map[string]string             `json:"annotations,omitempty"`
 		Labels                   map[string]string             `json:"labels,omitempty"`
+		// Type: logical/physical.
+		Type string `json:"type,omitempty"`
 	}
 	// BackupSchedule represents set of settings to configure backup schedule.
 	BackupSchedule struct {

@@ -2060,6 +2060,9 @@ spec:
                       - type
                       type: object
                     type: object
+                  type:
+                    description: 'Type: logical/physical.'
+                    type: string
                 type: object
               clusterSize:
                 description: ClusterSize is amount of nodes that required for the

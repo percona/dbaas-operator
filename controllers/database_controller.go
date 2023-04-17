@@ -28,6 +28,7 @@ import (
 
 	"github.com/AlekSi/pointer"
 	goversion "github.com/hashicorp/go-version"
+	"github.com/percona/percona-backup-mongodb/pbm"
 	pgv2beta1 "github.com/percona/percona-postgresql-operator/pkg/apis/pg.percona.com/v2beta1"
 	crunchyv1beta1 "github.com/percona/percona-postgresql-operator/pkg/apis/postgres-operator.crunchydata.com/v1beta1"
 	psmdbv1 "github.com/percona/percona-server-mongodb-operator/pkg/apis/psmdb/v1"
@@ -535,6 +536,11 @@ func (r *DatabaseReconciler) reconcilePSMDB(ctx context.Context, req ctrl.Reques
 				}
 			}
 			for _, v := range database.Spec.Backup.Schedule {
+				backupType := pbm.LogicalBackup
+				if database.Spec.Backup.Type == string(pbm.PhysicalBackup) {
+					backupType = pbm.PhysicalBackup
+				}
+
 				tasks = append(tasks, psmdbv1.BackupTaskSpec{
 					Name:             v.Name,
 					Enabled:          v.Enabled,
@@ -543,6 +549,7 @@ func (r *DatabaseReconciler) reconcilePSMDB(ctx context.Context, req ctrl.Reques
 					StorageName:      v.StorageName,
 					CompressionType:  v.CompressionType,
 					CompressionLevel: v.CompressionLevel,
+					Type:             backupType,
 				})
 			}
 			psmdb.Spec.Backup.Storages = storages
@@ -829,10 +836,8 @@ func (r *DatabaseReconciler) reconcilePXC(ctx context.Context, req ctrl.Request,
 	database.Status.Ready = pxc.Status.Ready
 	database.Status.Size = pxc.Status.Size
 	database.Status.Message = strings.Join(pxc.Status.Messages, ";")
-	if err := r.Status().Update(ctx, database); err != nil {
-		return err
-	}
-	return nil
+
+	return r.Status().Update(ctx, database)
 }
 
 func (r *DatabaseReconciler) reconcilePG(ctx context.Context, _ ctrl.Request, database *dbaasv1.DatabaseCluster) error {
