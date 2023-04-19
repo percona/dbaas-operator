@@ -493,6 +493,11 @@ func (r *DatabaseReconciler) reconcilePSMDB(ctx context.Context, req ctrl.Reques
 			psmdb.Spec.PMM.Image = database.Spec.Monitoring.PMM.Image
 		}
 		if database.Spec.Backup != nil {
+			backupType := pbm.LogicalBackup
+			if database.Spec.Backup.Type == string(pbm.PhysicalBackup) {
+				backupType = pbm.PhysicalBackup
+			}
+
 			if database.Spec.Backup.Image == "" {
 				image, err := version.PSMDBBackupImage()
 				if err != nil {
@@ -536,11 +541,6 @@ func (r *DatabaseReconciler) reconcilePSMDB(ctx context.Context, req ctrl.Reques
 				}
 			}
 			for _, v := range database.Spec.Backup.Schedule {
-				backupType := pbm.LogicalBackup
-				if database.Spec.Backup.Type == string(pbm.PhysicalBackup) {
-					backupType = pbm.PhysicalBackup
-				}
-
 				tasks = append(tasks, psmdbv1.BackupTaskSpec{
 					Name:             v.Name,
 					Enabled:          v.Enabled,
@@ -570,10 +570,8 @@ func (r *DatabaseReconciler) reconcilePSMDB(ctx context.Context, req ctrl.Reques
 		message = conditions[len(conditions)-1].Message
 	}
 	database.Status.Message = message
-	if err := r.Status().Update(ctx, database); err != nil {
-		return err
-	}
-	return nil
+
+	return r.Status().Update(ctx, database)
 }
 
 func (r *DatabaseReconciler) reconcilePXC(ctx context.Context, req ctrl.Request, database *dbaasv1.DatabaseCluster) error { //nolint:gocognit,gocyclo,cyclop,maintidx

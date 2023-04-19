@@ -46,6 +46,7 @@ spec:
         name: daily-backup
         schedule: "0 0 * * *"
         storageName: aws
+        type: logical
       - enabled: true
         keep: 5
         name: azure-backup
