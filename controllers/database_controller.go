@@ -494,7 +494,7 @@ func (r *DatabaseReconciler) reconcilePSMDB(ctx context.Context, req ctrl.Reques
 		}
 		if database.Spec.Backup != nil {
 			backupType := pbm.LogicalBackup
-			if database.Spec.Backup.Type == string(pbm.PhysicalBackup) {
+			if database.Spec.Backup.Type == pbm.PhysicalBackup {
 				backupType = pbm.PhysicalBackup
 			}
 

@@ -2062,7 +2062,8 @@ spec:
                       type: object
                     type: object
                   type:
-                    description: 'Type: logical/physical.'
+                    description: Type represents the backup type. It can be logical
+                      (copying the data) or physical (copy the physical data files).
                     type: string
                 type: object
               clusterSize:
