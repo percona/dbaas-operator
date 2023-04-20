@@ -87,6 +87,12 @@ const (
 	memoryMediumSize = int64(8) * 1000 * 1000 * 1000
 	memoryLargeSize  = int64(32) * 1000 * 1000 * 1000
 
+	// ClusterServiceDNSModeInternal exposed MongoDB instances will use ClusterIP addresses.
+	ClusterServiceDNSModeInternal = "Internal"
+	// ClusterServiceDNSModeServiceMesh turns on for the exposed Services. Being set, ServiceMesh value suprecedes
+	// multiCluster settings, and therefore these two modes cannot be combined together.
+	ClusterServiceDNSModeServiceMesh = "ServiceMesh"
+
 	pxcDefaultConfigurationTemplate = `[mysqld]
 wsrep_provider_options="gcache.size=%s"
 wsrep_trx_fragment_unit='bytes'
