@@ -507,6 +507,12 @@ func (r *DatabaseReconciler) reconcilePSMDB(ctx context.Context, req ctrl.Reques
 				Resources:                database.Spec.Backup.Resources,
 				Annotations:              database.Spec.Backup.Annotations,
 				Labels:                   database.Spec.Backup.Labels,
+				PITR: psmdbv1.PITRSpec{
+					Enabled:          database.Spec.Backup.PITR.Enabled,
+					OplogSpanMin:     database.Spec.Backup.PITR.TimeBetweenUploadsMin,
+					CompressionType:  database.Spec.Backup.PITR.CompressionType,
+					CompressionLevel: database.Spec.Backup.PITR.CompressionLevel,
+				},
 			}
 			storages := make(map[string]psmdbv1.BackupStorageSpec)
 			var tasks []psmdbv1.BackupTaskSpec
@@ -772,6 +778,12 @@ func (r *DatabaseReconciler) reconcilePXC(ctx context.Context, req ctrl.Request,
 				ImagePullSecrets:   database.Spec.Backup.ImagePullSecrets,
 				ImagePullPolicy:    database.Spec.Backup.ImagePullPolicy,
 				ServiceAccountName: database.Spec.Backup.ServiceAccountName,
+				PITR: pxcv1.PITRSpec{
+					Enabled:            database.Spec.Backup.PITR.Enabled,
+					StorageName:        database.Spec.Backup.PITR.StorageName,
+					Resources:          database.Spec.Backup.PITR.Resources,
+					TimeBetweenUploads: database.Spec.Backup.PITR.TimeBetweenUploadsMin.Float64() * 60,
+				},
 			}
 			storages := make(map[string]*pxcv1.BackupStorageSpec)
 			var schedules []pxcv1.PXCScheduledBackupSchedule

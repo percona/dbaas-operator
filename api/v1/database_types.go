@@ -17,6 +17,7 @@ package v1
 
 import (
 	"github.com/percona/percona-backup-mongodb/pbm/compress"
+	"github.com/percona/percona-server-mongodb-operator/pkg/util/numstr"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -131,6 +132,7 @@ type (
 		ImagePullSecrets         []corev1.LocalObjectReference `json:"imagePullSecrets,omitempty"`
 		ImagePullPolicy          corev1.PullPolicy             `json:"imagePullPolicy,omitempty"`
 		Schedule                 []BackupSchedule              `json:"schedule,omitempty"`
+		PITR                     PITRSpec                      `json:"pitr,omitempty"`
 		ServiceAccountName       string                        `json:"serviceAccountName,omitempty"`
 		ContainerSecurityContext *corev1.SecurityContext       `json:"containerSecurityContext,omitempty"`
 		Resources                corev1.ResourceRequirements   `json:"resources,omitempty"`
@@ -180,6 +182,15 @@ type (
 		ContainerSecurityContext *corev1.SecurityContext     `json:"containerSecurityContext,omitempty"`
 		RuntimeClassName         *string                     `json:"runtimeClassName,omitempty"`
 		VerifyTLS                *bool                       `json:"verifyTLS,omitempty"`
+	}
+	// PITRSpec represents a specification to configure point in time recovery for a database backup/restore.
+	PITRSpec struct {
+		Enabled               bool                        `json:"enabled,omitempty"`
+		TimeBetweenUploadsMin numstr.NumberString         `json:"timeBetweenUploadsMin,omitempty"`
+		CompressionType       compress.CompressionType    `json:"compressionType,omitempty"`
+		CompressionLevel      *int                        `json:"compressionLevel,omitempty"`
+		StorageName           string                      `json:"storageName"`
+		Resources             corev1.ResourceRequirements `json:"resources,omitempty"`
 	}
 	// VolumeSpec represents a specification to configure volume for underlying database.
 	VolumeSpec struct {

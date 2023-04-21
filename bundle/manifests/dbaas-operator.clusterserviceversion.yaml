@@ -69,7 +69,7 @@ metadata:
         }
       ]
     capabilities: Basic Install
-    createdAt: "2023-04-04T11:57:19Z"
+    createdAt: "2023-04-11T09:58:55Z"
     operators.operatorframework.io/builder: operator-sdk-v1.27.0
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v3
   name: dbaas-operator.v0.1.9

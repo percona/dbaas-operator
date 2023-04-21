@@ -16,6 +16,9 @@
 package v1
 
 import (
+	"encoding/json"
+	"time"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -42,6 +45,14 @@ type (
 		DatabaseType    EngineType    `json:"databaseType"`
 		BackupName      string        `json:"backupName,omitempty"`
 		BackupSource    *BackupSource `json:"backupSource,omitempty"`
+		PITR            *PITR         `json:"pitr,omitempty"`
+	}
+	// PITR represents a specification to configure point in time recovery for a database backup/restore.
+	PITR struct {
+		BackupSource *BackupSource `json:"backupSource,omitempty"`
+		Type         string        `json:"type"`
+		Date         *RestoreDate  `json:"date,omitempty"`
+		GTID         string        `json:"gtid,omitempty"`
 	}
 	// BackupSource represents settings of a source where to get a backup to run restoration.
 	BackupSource struct {
@@ -49,13 +60,48 @@ type (
 		StorageName           string                     `json:"storageName,omitempty"`
 		S3                    *BackupStorageProviderSpec `json:"s3,omitempty"`
 		Azure                 *BackupStorageProviderSpec `json:"azure,omitempty"`
-		StorageType           BackupStorageType          `json:"storage_type"`
+		StorageType           BackupStorageType          `json:"storageType,omitempty"`
 		Image                 string                     `json:"image,omitempty"`
 		SSLSecretName         string                     `json:"sslSecretName,omitempty"`
 		SSLInternalSecretName string                     `json:"sslInternalSecretName,omitempty"`
 		VaultSecretName       string                     `json:"vaultSecretName,omitempty"`
 	}
 )
+
+// RestoreDate is a data type for better time.Time support.
+// +kubebuilder:validation:Type=string
+type RestoreDate struct {
+	metav1.Time `json:",inline"`
+}
+
+// OpenAPISchemaType returns a schema type for OperAPI specification.
+func (RestoreDate) OpenAPISchemaType() []string { return []string{"string"} }
+
+// OpenAPISchemaFormat returns a format for OperAPI specification.
+func (RestoreDate) OpenAPISchemaFormat() string { return "" }
+
+// UnmarshalJSON unmarshals JSON.
+func (t *RestoreDate) UnmarshalJSON(b []byte) error {
+	if len(b) == 4 && string(b) == "null" {
+		t.Time = metav1.NewTime(time.Time{})
+		return nil
+	}
+
+	var str string
+
+	if err := json.Unmarshal(b, &str); err != nil {
+		return err
+	}
+
+	pt, err := time.Parse("2006-01-02 15:04:05", str)
+	if err != nil {
+		return err
+	}
+
+	t.Time = metav1.NewTime(pt)
+
+	return nil
+}
 
 // DatabaseClusterRestoreStatus defines the observed state of DatabaseClusterRestore.
 type DatabaseClusterRestoreStatus struct {

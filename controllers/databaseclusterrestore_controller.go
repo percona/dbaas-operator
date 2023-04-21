@@ -85,7 +85,7 @@ func (r *DatabaseClusterRestoreReconciler) Reconcile(ctx context.Context, req ct
 	}
 	if cr.Spec.DatabaseType == dbaasv1.PSMDBEngine {
 		if err := r.restorePSMDB(cr); err != nil { //nolint:contextcheck
-			logger.Error(err, "unable to restore PXC Cluster")
+			logger.Error(err, "unable to restore PSMDB Cluster")
 			return reconcile.Result{}, err
 		}
 	}
@@ -101,6 +101,7 @@ func (r *DatabaseClusterRestoreReconciler) ensureClusterIsReady(restore *dbaasv1
 		case <-timeoutCtx.Done():
 			return errors.New("wait timeout exceeded")
 		default:
+			time.Sleep(500 * time.Millisecond)
 			cluster := &dbaasv1.DatabaseCluster{}
 			err := r.Get(context.Background(), types.NamespacedName{Name: restore.Spec.DatabaseCluster, Namespace: restore.Namespace}, cluster)
 			if err != nil {
@@ -160,6 +161,12 @@ func (r *DatabaseClusterRestoreReconciler) restorePSMDB(restore *dbaasv1.Databas
 				}
 			}
 		}
+		if restore.Spec.PITR != nil {
+			psmdbCR.Spec.PITR = &psmdbv1.PITRestoreSpec{
+				Type: psmdbv1.PITRestoreType(restore.Spec.PITR.Type),
+				Date: &psmdbv1.PITRestoreDate{Time: restore.Spec.PITR.Date.Time},
+			}
+		}
 		return nil
 	})
 	if err != nil {
@@ -202,6 +209,7 @@ func (r *DatabaseClusterRestoreReconciler) restorePXC(restore *dbaasv1.DatabaseC
 			pxcCR.Spec.BackupSource = &pxcv1.PXCBackupStatus{
 				Destination: restore.Spec.BackupSource.Destination,
 				StorageName: restore.Spec.BackupSource.StorageName,
+				StorageType: pxcv1.BackupStorageType(restore.Spec.BackupSource.StorageType),
 			}
 			switch restore.Spec.BackupSource.StorageType {
 			case dbaasv1.BackupStorageS3:
@@ -218,6 +226,23 @@ func (r *DatabaseClusterRestoreReconciler) restorePXC(restore *dbaasv1.DatabaseC
 					Endpoint:          restore.Spec.BackupSource.Azure.EndpointURL,
 					StorageClass:      restore.Spec.BackupSource.Azure.StorageClass,
 				}
+			}
+		}
+		if restore.Spec.PITR != nil {
+			storageName := pxcCR.Spec.BackupSource.StorageName
+			storageType := pxcCR.Spec.BackupSource.StorageType
+			if restore.Spec.PITR.BackupSource != nil {
+				storageName = restore.Spec.PITR.BackupSource.StorageName
+				storageType = pxcv1.BackupStorageType(restore.Spec.PITR.BackupSource.StorageType)
+			}
+			pxcCR.Spec.PITR = &pxcv1.PITR{
+				BackupSource: &pxcv1.PXCBackupStatus{
+					StorageName: storageName,
+					StorageType: storageType,
+				},
+				Type: restore.Spec.PITR.Type,
+				Date: restore.Spec.PITR.Date.Format("2006-01-02 15:04:05"),
+				GTID: restore.Spec.PITR.GTID,
 			}
 		}
 		return nil
