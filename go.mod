@@ -9,7 +9,7 @@ require (
 	github.com/onsi/gomega v1.27.6
 	github.com/percona/percona-backup-mongodb v1.8.1-0.20221024072933-3ec38a5fc670
 	github.com/percona/percona-postgresql-operator v0.0.0-20230303091527-87e23aea398c
-	github.com/percona/percona-server-mongodb-operator v1.14.0
+	github.com/percona/percona-server-mongodb-operator v1.11.1-0.20230419080008-11938c208f6c
 	github.com/percona/percona-xtradb-cluster-operator v1.12.0
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.8.2
