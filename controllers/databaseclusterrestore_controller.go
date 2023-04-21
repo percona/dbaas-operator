@@ -164,7 +164,7 @@ func (r *DatabaseClusterRestoreReconciler) restorePSMDB(restore *dbaasv1.Databas
 		if restore.Spec.PITR != nil {
 			psmdbCR.Spec.PITR = &psmdbv1.PITRestoreSpec{
 				Type: psmdbv1.PITRestoreType(restore.Spec.PITR.Type),
-				//Date: &psmdbv1.PITRestoreDate{Time: restore.Spec.PITR.Date.Time},
+				Date: &psmdbv1.PITRestoreDate{Time: restore.Spec.PITR.Date.Time},
 			}
 		}
 		return nil
