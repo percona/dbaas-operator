@@ -156,7 +156,8 @@ var defaultPXCSpec = pxcv1.PerconaXtraDBClusterSpec{
 var (
 	maxUnavailable   = intstr.FromInt(1)
 	defaultPSMDBSpec = psmdbv1.PerconaServerMongoDBSpec{
-		UpdateStrategy: psmdbv1.SmartUpdateStatefulSetStrategyType,
+		UpdateStrategy:        psmdbv1.SmartUpdateStatefulSetStrategyType,
+		ClusterServiceDNSMode: ClusterServiceDNSModeServiceMesh,
 		UpgradeOptions: psmdbv1.UpgradeOptions{
 			Apply:    "disabled",
 			Schedule: "0 4 * * *",
