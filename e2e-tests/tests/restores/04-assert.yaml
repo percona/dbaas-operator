@@ -78,3 +78,19 @@ spec:
       bucket: test-bucket
       region: eu-central-1
       credentialsSecret: creds-backup
+---
+apiVersion: psmdb.percona.com/v1
+kind: PerconaServerMongoDBRestore
+metadata:
+  name: test-psmdb-restore1
+spec:
+  clusterName: test-psmdb-cluster1
+  pitr:
+    type: date
+    date: 2023-01-12 12:22:33
+  backupSource:
+    destination: s3://bucket/backup
+    s3:
+      bucket: test-bucket
+      region: eu-central-1
+      credentialsSecret: creds-backup
