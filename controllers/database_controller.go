@@ -263,6 +263,8 @@ var defaultPGSpec = pgv2beta1.PerconaPGClusterSpec{
 	},
 }
 
+var v1_14 = goversion.Must(goversion.NewVersion("1.14.0"))
+
 // DatabaseReconciler reconciles a Database object.
 type DatabaseReconciler struct {
 	client.Client
@@ -494,7 +496,7 @@ func (r *DatabaseReconciler) reconcilePSMDB(ctx context.Context, req ctrl.Reques
 		}
 		if database.Spec.Backup != nil {
 			backupType := pbm.LogicalBackup
-			if database.Spec.Backup.Type == pbm.PhysicalBackup {
+			if database.Spec.Backup.Type == pbm.PhysicalBackup && version.Version().GreaterThanOrEqual(v1_14) {
 				backupType = pbm.PhysicalBackup
 			}
 

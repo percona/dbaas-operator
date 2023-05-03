@@ -86,6 +86,11 @@ func (v *Version) ToAPIVersion(apiRoot string) string {
 	return fmt.Sprintf("%s/v%s", apiRoot, strings.ReplaceAll(v.String(), ".", "-"))
 }
 
+// Version returns the raw version object to be used in comparissons.
+func (v *Version) Version() *goversion.Version {
+	return v.version
+}
+
 // PSMDBBackupImage returns backup image for psmdb clusters depending on operator version
 // For 1.12+ it gets image from version service.
 func (v *Version) PSMDBBackupImage() (string, error) {
