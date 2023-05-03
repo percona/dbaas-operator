@@ -86,7 +86,7 @@ func (v *Version) ToAPIVersion(apiRoot string) string {
 	return fmt.Sprintf("%s/v%s", apiRoot, strings.ReplaceAll(v.String(), ".", "-"))
 }
 
-// Version returns the raw version object to be used in comparissons.
+// Version returns the raw version object to be used in comparisons.
 func (v *Version) Version() *goversion.Version {
 	return v.version
 }
