@@ -28,6 +28,7 @@ import (
 
 	"github.com/AlekSi/pointer"
 	goversion "github.com/hashicorp/go-version"
+	"github.com/percona/percona-backup-mongodb/pbm"
 	pgv2beta1 "github.com/percona/percona-postgresql-operator/pkg/apis/pg.percona.com/v2beta1"
 	crunchyv1beta1 "github.com/percona/percona-postgresql-operator/pkg/apis/postgres-operator.crunchydata.com/v1beta1"
 	psmdbv1 "github.com/percona/percona-server-mongodb-operator/pkg/apis/psmdb/v1"
@@ -262,6 +263,8 @@ var defaultPGSpec = pgv2beta1.PerconaPGClusterSpec{
 	},
 }
 
+var v1_14 = goversion.Must(goversion.NewVersion("1.14.0"))
+
 // DatabaseReconciler reconciles a Database object.
 type DatabaseReconciler struct {
 	client.Client
@@ -492,6 +495,11 @@ func (r *DatabaseReconciler) reconcilePSMDB(ctx context.Context, req ctrl.Reques
 			psmdb.Spec.PMM.Image = database.Spec.Monitoring.PMM.Image
 		}
 		if database.Spec.Backup != nil {
+			backupType := pbm.LogicalBackup
+			if database.Spec.Backup.Type == pbm.PhysicalBackup && version.Version().GreaterThanOrEqual(v1_14) {
+				backupType = pbm.PhysicalBackup
+			}
+
 			if database.Spec.Backup.Image == "" {
 				image, err := version.PSMDBBackupImage()
 				if err != nil {
@@ -543,6 +551,7 @@ func (r *DatabaseReconciler) reconcilePSMDB(ctx context.Context, req ctrl.Reques
 					StorageName:      v.StorageName,
 					CompressionType:  v.CompressionType,
 					CompressionLevel: v.CompressionLevel,
+					Type:             backupType,
 				})
 			}
 			psmdb.Spec.Backup.Storages = storages
@@ -563,10 +572,8 @@ func (r *DatabaseReconciler) reconcilePSMDB(ctx context.Context, req ctrl.Reques
 		message = conditions[len(conditions)-1].Message
 	}
 	database.Status.Message = message
-	if err := r.Status().Update(ctx, database); err != nil {
-		return err
-	}
-	return nil
+
+	return r.Status().Update(ctx, database)
 }
 
 func (r *DatabaseReconciler) reconcilePXC(ctx context.Context, req ctrl.Request, database *dbaasv1.DatabaseCluster) error { //nolint:gocognit,gocyclo,cyclop,maintidx
@@ -829,10 +836,8 @@ func (r *DatabaseReconciler) reconcilePXC(ctx context.Context, req ctrl.Request,
 	database.Status.Ready = pxc.Status.Ready
 	database.Status.Size = pxc.Status.Size
 	database.Status.Message = strings.Join(pxc.Status.Messages, ";")
-	if err := r.Status().Update(ctx, database); err != nil {
-		return err
-	}
-	return nil
+
+	return r.Status().Update(ctx, database)
 }
 
 func (r *DatabaseReconciler) reconcilePG(ctx context.Context, _ ctrl.Request, database *dbaasv1.DatabaseCluster) error {

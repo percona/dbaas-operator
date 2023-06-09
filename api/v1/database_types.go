@@ -16,6 +16,7 @@
 package v1
 
 import (
+	"github.com/percona/percona-backup-mongodb/pbm"
 	"github.com/percona/percona-backup-mongodb/pbm/compress"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -137,6 +138,8 @@ type (
 		Storages                 map[string]*BackupStorageSpec `json:"storages,omitempty"`
 		Annotations              map[string]string             `json:"annotations,omitempty"`
 		Labels                   map[string]string             `json:"labels,omitempty"`
+		// Type represents the backup type. It can be logical (copying the data) or physical (copy the physical data files).
+		Type pbm.BackupType `json:"type,omitempty"`
 	}
 	// BackupSchedule represents set of settings to configure backup schedule.
 	BackupSchedule struct {
