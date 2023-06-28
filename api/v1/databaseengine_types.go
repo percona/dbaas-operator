@@ -39,13 +39,15 @@ type (
 
 // DatabaseEngineSpec is a spec for a database engine.
 type DatabaseEngineSpec struct {
-	Type EngineType `json:"type"`
+	Type            EngineType `json:"type"`
+	EnabledVersions Versions   `json:"enabledVersions,omitempty"`
 }
 
 // DatabaseEngineStatus defines the observed state of DatabaseEngine.
 type DatabaseEngineStatus struct {
-	State   EngineState `json:"status,omitempty"`
-	Version string      `json:"version,omitempty"`
+	State             EngineState `json:"status,omitempty"`
+	Version           string      `json:"version,omitempty"`
+	AvailableVersions Versions    `json:"availableVersions,omitempty"`
 }
 
 //+kubebuilder:object:root=true
@@ -71,6 +73,23 @@ type DatabaseEngineList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []DatabaseEngine `json:"items"`
+}
+
+// Versions struct represents available versions of database engine components.
+type Versions struct {
+	Engine map[string]*Component            `json:"engine,omitempty"`
+	Backup map[string]*Component            `json:"backup,omitempty"`
+	Proxy  map[string]map[string]*Component `json:"proxy,omitempty"`
+	Tools  map[string]map[string]*Component `json:"tools,omitempty"`
+}
+
+// Component contains information of the database engine component.
+// Database Engine component can be database engine, database proxy or tools image path
+type Component struct {
+	Critical  bool   `json:"critical,omitempty"`
+	ImageHash string `json:"imageHash,omitempty"`
+	ImagePath string `json:"imagePath,omitempty"`
+	Status    string `json:"status,omitempty"`
 }
 
 func init() {
