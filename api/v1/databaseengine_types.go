@@ -39,15 +39,17 @@ type (
 
 // DatabaseEngineSpec is a spec for a database engine.
 type DatabaseEngineSpec struct {
-	Type            EngineType `json:"type"`
-	EnabledVersions Versions   `json:"enabledVersions,omitempty"`
+	Type           EngineType            `json:"type"`
+	engineVersions map[string]*Component `json:"engineVersions,omitempty"`
 }
 
 // DatabaseEngineStatus defines the observed state of DatabaseEngine.
 type DatabaseEngineStatus struct {
-	State             EngineState `json:"status,omitempty"`
-	Version           string      `json:"version,omitempty"`
-	AvailableVersions Versions    `json:"availableVersions,omitempty"`
+	State               EngineState `json:"status,omitempty"`
+	Version             string      `json:"version,omitempty"`
+	OperatorVersion     string      `json:"operatorVersion,omitempty"`
+	AvailableVersions   Versions    `json:"availableVersions,omitempty"`
+	RecommentedVersions Versions    `json:"availableVersions,omitempty"`
 }
 
 //+kubebuilder:object:root=true
