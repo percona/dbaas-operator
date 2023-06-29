@@ -69,7 +69,6 @@ func (r *DatabaseEngineReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	}
 
 	dbEngine.Status.State = dbaasv1.DBEngineStateNotInstalled
-	dbEngine.Status.Version = ""
 	dbEngine.Status.OperatorVersion = ""
 	ready, version, err := r.getOperatorStatus(ctx, req.NamespacedName)
 	if err != nil {
@@ -78,7 +77,6 @@ func (r *DatabaseEngineReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		}
 	}
 	if version != "" {
-		dbEngine.Status.Version = version
 		dbEngine.Status.OperatorVersion = version
 		dbEngine.Status.State = dbaasv1.DBEngineStateInstalling
 	}

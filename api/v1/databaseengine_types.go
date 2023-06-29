@@ -52,7 +52,6 @@ type DatabaseEngineSpec struct {
 // DatabaseEngineStatus defines the observed state of DatabaseEngine.
 type DatabaseEngineStatus struct {
 	State             EngineState `json:"status,omitempty"`
-	Version           string      `json:"version,omitempty"`
 	OperatorVersion   string      `json:"operatorVersion,omitempty"`
 	AvailableVersions Versions    `json:"availableVersions,omitempty"`
 }
