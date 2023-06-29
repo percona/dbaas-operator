@@ -26,6 +26,12 @@ const (
 	DBEngineStateInstalling EngineState = "installing"
 	// DBEngineStateInstalled represents the state of engine when underlying operator is installed.
 	DBEngineStateInstalled EngineState = "installed"
+	// DatabaseEnginePXC represents engine type for PXC clusters.
+	DatabaseEnginePXC EngineType = "pxc"
+	// DatabaseEnginePSMDB represents engine type for PSMDB clusters.
+	DatabaseEnginePSMDB EngineType = "psmdb"
+	// DatabaseEnginePostgresql represents engine type for Postgresql clusters.
+	DatabaseEnginePostgresql EngineType = "postgresql"
 )
 
 type (
@@ -40,16 +46,15 @@ type (
 // DatabaseEngineSpec is a spec for a database engine.
 type DatabaseEngineSpec struct {
 	Type           EngineType            `json:"type"`
-	engineVersions map[string]*Component `json:"engineVersions,omitempty"`
+	EngineVersions map[string]*Component `json:"engineVersions,omitempty"`
 }
 
 // DatabaseEngineStatus defines the observed state of DatabaseEngine.
 type DatabaseEngineStatus struct {
-	State               EngineState `json:"status,omitempty"`
-	Version             string      `json:"version,omitempty"`
-	OperatorVersion     string      `json:"operatorVersion,omitempty"`
-	AvailableVersions   Versions    `json:"availableVersions,omitempty"`
-	RecommentedVersions Versions    `json:"availableVersions,omitempty"`
+	State             EngineState `json:"status,omitempty"`
+	Version           string      `json:"version,omitempty"`
+	OperatorVersion   string      `json:"operatorVersion,omitempty"`
+	AvailableVersions Versions    `json:"availableVersions,omitempty"`
 }
 
 //+kubebuilder:object:root=true
@@ -92,6 +97,15 @@ type Component struct {
 	ImageHash string `json:"imageHash,omitempty"`
 	ImagePath string `json:"imagePath,omitempty"`
 	Status    string `json:"status,omitempty"`
+}
+
+func (d DatabaseEngine) RecommendedBackupImage() string {
+	for _, component := range d.Status.AvailableVersions.Backup {
+		if component.Status == "recommended" {
+			return component.ImagePath
+		}
+	}
+	return ""
 }
 
 func init() {
