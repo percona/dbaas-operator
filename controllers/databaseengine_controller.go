@@ -73,6 +73,9 @@ func (r *DatabaseEngineReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		dbEngine.Spec.Type = engineType
 		return nil
 	})
+	if err != nil {
+		return ctrl.Result{}, err
+	}
 
 	dbEngine.Status.State = dbaasv1.DBEngineStateNotInstalled
 	dbEngine.Status.OperatorVersion = ""

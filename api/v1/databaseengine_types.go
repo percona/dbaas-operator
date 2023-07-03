@@ -45,8 +45,8 @@ type (
 
 // DatabaseEngineSpec is a spec for a database engine.
 type DatabaseEngineSpec struct {
-	Type           EngineType            `json:"type"`
-	EngineVersions map[string]*Component `json:"engineVersions,omitempty"`
+	Type            EngineType `json:"type"`
+	AllowedVersions []string   `json:"allowedVersions,omitempty"`
 }
 
 // DatabaseEngineStatus defines the observed state of DatabaseEngine.
