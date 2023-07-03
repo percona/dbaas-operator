@@ -42,7 +42,7 @@ jobs:
           make test
         env:
           PXC_OPERATOR_VERSION: 1.12.0
-          PSMDB_OPERATOR_VERSION: 1.13.0
+          PSMDB_OPERATOR_VERSION: 1.14.0
           PG_OPERATOR_VERSION: 2.1.0
 
     #kind-e2e-tests:
