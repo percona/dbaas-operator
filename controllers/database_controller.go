@@ -118,6 +118,7 @@ var operatorDeployment = map[dbaasv1.EngineType]string{
 	dbaasv1.DatabaseEnginePSMDB:      psmdbDeploymentName,
 	dbaasv1.DatabaseEnginePostgresql: pgDeploymentName,
 }
+
 var defaultPXCSpec = pxcv1.PerconaXtraDBClusterSpec{
 	UpdateStrategy: pxcv1.SmartUpdateStatefulSetStrategyType,
 	UpgradeOptions: pxcv1.UpgradeOptions{

@@ -90,7 +90,7 @@ type Versions struct {
 }
 
 // Component contains information of the database engine component.
-// Database Engine component can be database engine, database proxy or tools image path
+// Database Engine component can be database engine, database proxy or tools image path.
 type Component struct {
 	Critical  bool   `json:"critical,omitempty"`
 	ImageHash string `json:"imageHash,omitempty"`
@@ -98,6 +98,7 @@ type Component struct {
 	Status    string `json:"status,omitempty"`
 }
 
+// RecommendedBackupImage returns the recommended image for a backup component.
 func (d DatabaseEngine) RecommendedBackupImage() string {
 	for _, component := range d.Status.AvailableVersions.Backup {
 		if component.Status == "recommended" {

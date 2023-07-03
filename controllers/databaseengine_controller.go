@@ -85,7 +85,6 @@ func (r *DatabaseEngineReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		matrix, err := r.versionService.GetVersions(engineType, dbEngine.Status.OperatorVersion)
 		if err != nil {
 			return ctrl.Result{}, err
-
 		}
 		versions := dbaasv1.Versions{
 			Backup: matrix.Backup,

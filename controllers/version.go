@@ -22,10 +22,6 @@ import (
 	goversion "github.com/hashicorp/go-version"
 )
 
-const (
-	psmdbBackupImageTmpl = "percona/percona-server-mongodb-operator:%s-backup"
-)
-
 type (
 	// Version is a wrapper around github.com/hashicorp/go-version that adds additional
 	// functions for developer's usability.

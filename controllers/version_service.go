@@ -19,19 +19,19 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
+
+	"github.com/pkg/errors"
 
 	dbaasv1 "github.com/percona/dbaas-operator/api/v1"
-	"github.com/pkg/errors"
 )
 
 type (
-	VersionService struct{}
-	// Image is contains needed fields to parse information from version service.
-	Image struct {
-		ImagePath string `json:"imagePath"`
-		ImageHash string `json:"imageHash"`
-		Status    string `json:"status"`
+	// VersionService used for the integration with Percona Version Service.
+	VersionService struct {
+		url string
 	}
+	// Matrix represents the response from the version service.
 	Matrix struct {
 		Backup       map[string]*dbaasv1.Component `json:"backup"`
 		Mongod       map[string]*dbaasv1.Component `json:"mongod"`
@@ -52,26 +52,32 @@ type (
 )
 
 const (
-	defaultVersionServiceURL        = "https://check-dev.percona.com/versions/v1/%s/%s"
+	defaultVersionServiceURL        = "https://check.percona.com/versions/v1/%s/%s"
 	versionServiceStatusRecommended = "recommended"
 )
 
-var (
-	operatorNames = map[dbaasv1.EngineType]string{
-		dbaasv1.DatabaseEnginePXC:        "pxc-operator",
-		dbaasv1.DatabaseEnginePSMDB:      "psmdb-operator",
-		dbaasv1.DatabaseEnginePostgresql: "pg-operator",
-	}
-)
+var operatorNames = map[dbaasv1.EngineType]string{
+	dbaasv1.DatabaseEnginePXC:        "pxc-operator",
+	dbaasv1.DatabaseEnginePSMDB:      "psmdb-operator",
+	dbaasv1.DatabaseEnginePostgresql: "pg-operator",
+}
 
-// PSMDBBackupImage returns backup image for psmdb clusters depending on operator version
-// For 1.12+ it gets image from version service.
+// NewVersionService creates a version service client.
+func NewVersionService() *VersionService {
+	versionServiceURL := os.Getenv("PERCONA_VERSION_SERVICE_URL")
+	if versionServiceURL == "" {
+		versionServiceURL = defaultVersionServiceURL
+	}
+	return &VersionService{url: versionServiceURL}
+}
+
+// GetVersions returns a matrix of available versions for a database engine.
 func (v *VersionService) GetVersions(engineType dbaasv1.EngineType, operatorVersion string) (*Matrix, error) {
-	resp, err := http.Get(fmt.Sprintf(defaultVersionServiceURL, operatorNames[engineType], operatorVersion)) //nolint:noctx
+	resp, err := http.Get(fmt.Sprintf(v.url, operatorNames[engineType], operatorVersion)) //nolint:noctx
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close() //nolint:errcheck
+	defer resp.Body.Close() //nolint:errcheck,gosec
 	var vr VersionResponse
 	if err := json.NewDecoder(resp.Body).Decode(&vr); err != nil {
 		return nil, err
