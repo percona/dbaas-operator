@@ -52,7 +52,7 @@ type (
 )
 
 const (
-	defaultVersionServiceURL        = "https://check.percona.com/versions/v1/%s/%s"
+	defaultVersionServiceURL        = "https://check.percona.com/versions/v1"
 	versionServiceStatusRecommended = "recommended"
 )
 
@@ -73,7 +73,7 @@ func NewVersionService() *VersionService {
 
 // GetVersions returns a matrix of available versions for a database engine.
 func (v *VersionService) GetVersions(engineType dbaasv1.EngineType, operatorVersion string) (*Matrix, error) {
-	resp, err := http.Get(fmt.Sprintf(v.url, operatorNames[engineType], operatorVersion)) //nolint:noctx
+	resp, err := http.Get(fmt.Sprintf("%s/%s/%s", v.url, operatorNames[engineType], operatorVersion)) //nolint:noctx
 	if err != nil {
 		return nil, err
 	}
