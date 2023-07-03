@@ -1,62 +1,94 @@
-# DBaaS Operator
+# dbaas-operator
+// TODO(user): Add simple overview of use/purpose
 
+## Description
+// TODO(user): An in-depth paragraph about your project and overview of use
 
-## Status
+## Getting Started
+You’ll need a Kubernetes cluster to run against. You can use [KIND](https://sigs.k8s.io/kind) to get a local cluster for testing, or run against a remote cluster.
+**Note:** Your controller will automatically use the current context in your kubeconfig file (i.e. whatever cluster `kubectl cluster-info` shows).
 
-**This project is in the tech preview state right now. Don't use it on production.**
+### Running on the cluster
+1. Install Instances of Custom Resources:
 
-## Getting started
-
-### Deploy the DBaaS operator
-
-The first step is to deploy the DBaaS operator. This can be done using `kubectl`:
-
-```shell
-kubectl apply -f https://raw.githubusercontent.com/percona/dbaas-operator/v0.1.4/deploy/bundle.yaml
+```sh
+kubectl apply -f config/samples/
 ```
 
-### Deploy the underlying DB engine operators
+2. Build and push your image to the location specified by `IMG`:
 
-The DBaaS operator relies on underlying operators for deploying DB clusters of a given engine type.
-
-#### Percona XtraDB Cluster
-
-```shell
-kubectl apply -f https://raw.githubusercontent.com/percona/percona-xtradb-cluster-operator/v1.11.0/deploy/bundle.yaml -n dbaas-operator-system
+```sh
+make docker-build docker-push IMG=<some-registry>/dbaas-operator:tag
 ```
 
-#### Percona Server for MongoDB
+3. Deploy the controller to the cluster with the image specified by `IMG`:
 
-```shell
-kubectl apply -f https://raw.githubusercontent.com/percona/percona-server-mongodb-operator/v1.11.0/deploy/bundle.yaml -n dbaas-operator-system
+```sh
+make deploy IMG=<some-registry>/dbaas-operator:tag
 ```
 
-## How to get involved
+### Uninstall CRDs
+To delete the CRDs from the cluster:
 
-We encourage contributions and are always looking for new members that are as dedicated to serving the community as we are.
+```sh
+make uninstall
+```
 
-If you’re looking for information about how you can contribute, we have [contribution guidelines](CONTRIBUTING.md) across all our repositories in `CONTRIBUTING.md` files. Some of them may just link to the main project’s repository’s contribution guidelines.
+### Undeploy controller
+UnDeploy the controller from the cluster:
 
-We're looking forward to your contributions and hope to hear from you soon on our [Forums](https://forums.percona.com).
+```sh
+make undeploy
+```
 
-## Submitting Bug Reports
+## Contributing
+// TODO(user): Add detailed information on how you would like others to contribute to this project
 
-If you find a bug in Percona Monitoring and Management  or one of the related projects, you can submit a report to that project's [JIRA](https://jira.percona.com) issue tracker. Some of the related projects also have GitHub Issues enabled, so you can also submit there.
+### How it works
+This project aims to follow the Kubernetes [Operator pattern](https://kubernetes.io/docs/concepts/extend-kubernetes/operator/).
 
-Your first step should be [to search](https://jira.percona.com/issues/?jql=project=PMM) the existing set of open tickets for a similar report. If you find that someone else has already reported your problem, then you can upvote that report to increase its visibility.
+It uses [Controllers](https://kubernetes.io/docs/concepts/architecture/controller/),
+which provide a reconcile function responsible for synchronizing resources until the desired state is reached on the cluster.
 
-If there is no existing report, submit a report following these steps:
+### Test It Out
+1. Install the CRDs into the cluster:
 
-1. [Sign in to Percona JIRA.](https://jira.percona.com/login.jsp) You will need to create an account if you do not have one.
-2. [Go to the Create Issue screen and select the relevant project.](https://jira.percona.com/secure/CreateIssueDetails!init.jspa?pid=11600&issuetype=1&priority=3)
-3. Fill in the fields of Summary, Description, Steps To Reproduce, and Affects Version to the best you can. If the bug corresponds to a crash, attach the stack trace from the logs.
+```sh
+make install
+```
 
-An excellent resource is [Elika Etemad's article on filing good bug reports.](http://fantasai.inkedblade.net/style/talks/filing-good-bugs/).
+2. Run your controller (this will run in the foreground, so switch to a new terminal if you want to leave it running):
 
-As a general rule of thumb, please try to create bug reports that are:
+```sh
+make run
+```
 
-- *Reproducible.* Include steps to reproduce the problem.
-- *Specific.* Include as much detail as possible: which version, what environment, etc.
-- *Unique.* Do not duplicate existing tickets.
+**NOTE:** You can also run this in one step by running: `make install run`
 
+### Modifying the API definitions
+If you are editing the API definitions, generate the manifests such as CRs or CRDs using:
+
+```sh
+make manifests
+```
+
+**NOTE:** Run `make --help` for more information on all potential `make` targets
+
+More information can be found via the [Kubebuilder Documentation](https://book.kubebuilder.io/introduction.html)
+
+## License
+
+Copyright 2023.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 

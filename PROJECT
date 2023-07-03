@@ -16,35 +16,8 @@ resources:
     namespaced: true
   controller: true
   domain: percona.com
-  group: dbaas
+  group: everest
   kind: DatabaseCluster
-  path: github.com/percona/dbaas-operator/api/v1
-  version: v1
-- api:
-    crdVersion: v1
-    namespaced: true
-  controller: true
-  domain: percona.com
-  group: dbaas
-  kind: DatabaseEngine
-  path: github.com/percona/dbaas-operator/api/v1
-  version: v1
-- api:
-    crdVersion: v1
-    namespaced: true
-  controller: true
-  domain: percona.com
-  group: dbaas
-  kind: DatabaseClusterRestore
-  path: github.com/percona/dbaas-operator/api/v1
-  version: v1
-- api:
-    crdVersion: v1
-    namespaced: true
-  controller: true
-  domain: percona.com
-  group: dbaas
-  kind: DatabaseClusterBackup
-  path: github.com/percona/dbaas-operator/api/v1
-  version: v1
+  path: github.com/percona/dbaas-operator/api/v1beta1
+  version: v1beta1
 version: "3"
