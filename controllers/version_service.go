@@ -77,7 +77,7 @@ func (v *VersionService) GetVersions(engineType dbaasv1.EngineType, operatorVers
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close() //nolint:errcheck,gosec
+	defer resp.Body.Close() //nolint:errcheck
 	var vr VersionResponse
 	if err := json.NewDecoder(resp.Body).Decode(&vr); err != nil {
 		return nil, err
