@@ -29,6 +29,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 
 	dbaasv1 "github.com/percona/dbaas-operator/api/v1"
@@ -62,11 +63,16 @@ func (r *DatabaseEngineReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		return ctrl.Result{}, nil
 	}
 
-	dbEngine := &dbaasv1.DatabaseEngine{}
-
-	if err := r.Get(ctx, req.NamespacedName, dbEngine); err != nil {
-		return ctrl.Result{}, err
+	dbEngine := &dbaasv1.DatabaseEngine{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      req.NamespacedName.Name,
+			Namespace: req.NamespacedName.Namespace,
+		},
 	}
+	_, err := controllerutil.CreateOrUpdate(ctx, r.Client, dbEngine, func() error {
+		dbEngine.Spec.Type = engineType
+		return nil
+	})
 
 	dbEngine.Status.State = dbaasv1.DBEngineStateNotInstalled
 	dbEngine.Status.OperatorVersion = ""
@@ -146,7 +152,7 @@ func (r *DatabaseEngineReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	// yet so we use the client.Reader returned from manager.GetAPIReader() to
 	// hit the API server directly and avoid an ErrCacheNotStarted.
 	clientReader := mgr.GetAPIReader()
-	r.versionService = &VersionService{}
+	r.versionService = NewVersionService()
 
 	for operatorName, engineType := range operatorEngine {
 		dbEngine := &dbaasv1.DatabaseEngine{
